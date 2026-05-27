@@ -196,4 +196,77 @@ describe("App", () => {
     await screen.findByText("已保存当前好版本。");
     expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
+
+  it("可以查看版本变化抽屉且不展示技术术语", async () => {
+    const changedVersion = {
+      ...version,
+      changeSummary: {
+        added: 1,
+        modified: 1,
+        deleted: 1,
+        files: [
+          { path: "README.md", status: "added" as const },
+          { path: "src/App.tsx", status: "modified" as const },
+          { path: "old.txt", status: "deleted" as const },
+        ],
+      },
+    };
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return { ...projectDetail(false), versions: [changedVersion] };
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("当前没有未保存变化");
+    fireEvent.click(screen.getByRole("button", { name: "查看变化" }));
+
+    expect(screen.getByRole("heading", { name: "这次变化" })).toBeInTheDocument();
+    expect(screen.getByText("README.md")).toBeInTheDocument();
+    expect(screen.getByText("src/App.tsx")).toBeInTheDocument();
+    expect(screen.getByText("old.txt")).toBeInTheDocument();
+    expect(screen.queryByText(/diff|patch|commit/i)).not.toBeInTheDocument();
+  });
+
+  it("回退需要确认，取消后不会调用回退接口", async () => {
+    let rollbackCalled = false;
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return {
+          ...projectDetail(false),
+          project: { ...baseProject, currentVersionId: "version-current" },
+          versions: [
+            { ...version, id: "version-current", title: "当前版本", isInitial: false },
+            version,
+          ],
+        };
+      }
+      if (cmd === "rollback_to_version") {
+        rollbackCalled = true;
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("当前没有未保存变化");
+    fireEvent.click(screen.getAllByRole("button", { name: "回到这里" })[1]);
+    expect(screen.getByText("回到这个好版本？")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "取消" }));
+
+    await waitFor(() => expect(screen.queryByText("回到这个好版本？")).not.toBeInTheDocument());
+    expect(rollbackCalled).toBe(false);
+  });
 });
