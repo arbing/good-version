@@ -1,0 +1,86 @@
+import { expect, test } from "@playwright/test";
+
+test("空项目状态显示添加入口", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__TAURI_INTERNALS__ = {
+      invoke: async (cmd: string) => {
+        if (cmd === "get_app_status") {
+          return { dataDir: "/tmp/good-version" };
+        }
+        if (cmd === "list_projects") {
+          return [];
+        }
+        return null;
+      },
+      transformCallback: () => 1,
+      unregisterCallback: () => undefined,
+      convertFileSrc: (filePath: string) => filePath,
+    };
+  });
+
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { name: "先添加一个项目" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "添加项目" }).last()).toBeVisible();
+});
+
+test("有未保存变化时保存入口亮起并展示提示", async ({ page }) => {
+  await page.addInitScript(() => {
+    const project = {
+      id: "project-1",
+      displayName: "缺货处理工具",
+      path: "/tmp/project-1",
+      gitDirPath: "/tmp/data/repositories/project-1",
+      usesExternalGitDir: true,
+      createdAt: "2026-05-27 10:00:00",
+      updatedAt: "2026-05-27 10:00:00",
+      currentVersionId: "version-1",
+    };
+    const version = {
+      id: "version-1",
+      projectId: "project-1",
+      title: "初始好版本",
+      commitHash: "abc",
+      tagName: "good-version/version-1",
+      createdAt: "2026-05-27 10:00:00",
+      isInitial: true,
+      isRollbackCheckpoint: false,
+      changeSummary: { added: 0, modified: 0, deleted: 0, files: [] },
+    };
+
+    window.__TAURI_INTERNALS__ = {
+      invoke: async (cmd: string) => {
+        if (cmd === "get_app_status") {
+          return { dataDir: "/tmp/good-version" };
+        }
+        if (cmd === "list_projects") {
+          return [{ ...project, versionCount: 1, latestVersionAt: version.createdAt }];
+        }
+        if (cmd === "get_project_detail") {
+          return {
+            project,
+            versions: [version],
+            pathExists: true,
+            storageUsage: { workTreeBytes: 1024, versionDataBytes: 2048 },
+            currentChangeSummary: {
+              added: 1,
+              modified: 0,
+              deleted: 0,
+              files: [{ path: "README.md", status: "added" }],
+            },
+          };
+        }
+        return null;
+      },
+      transformCallback: () => 1,
+      unregisterCallback: () => undefined,
+      convertFileSrc: (filePath: string) => filePath,
+    };
+  });
+
+  await page.goto("/");
+
+  await expect(page.getByText("有未保存的变化")).toBeVisible();
+  await expect(page.getByText("新增 1 · 修改 0 · 删除 0")).toBeVisible();
+  await expect(page.getByRole("button", { name: /保存当前好版本/ })).toBeEnabled();
+});

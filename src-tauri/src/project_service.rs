@@ -422,3 +422,88 @@ fn open_path(path: &str) -> Result<(), String> {
     command.spawn().map_err(|error| error.to_string())?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn project_lifecycle_saves_changes_and_blocks_empty_save() {
+        let data_dir = tempdir().unwrap();
+        let work_tree = tempdir().unwrap();
+        fs::write(work_tree.path().join("README.md"), "hello").unwrap();
+        let service = ProjectService::new(data_dir.path().to_path_buf()).unwrap();
+
+        let detail = service
+            .add_project(work_tree.path().to_string_lossy().to_string())
+            .unwrap();
+        assert_eq!(detail.versions.len(), 1);
+        assert_eq!(detail.current_change_summary.files.len(), 0);
+        assert!(!work_tree.path().join(".git").exists());
+
+        fs::write(work_tree.path().join("README.md"), "hello updated").unwrap();
+        fs::write(work_tree.path().join("todo.txt"), "todo").unwrap();
+        let detail = service.get_project_detail(&detail.project.id).unwrap();
+        assert_eq!(detail.current_change_summary.added, 1);
+        assert_eq!(detail.current_change_summary.modified, 1);
+
+        let saved = service
+            .save_version(&detail.project.id, Some("主路径可用".to_string()))
+            .unwrap();
+        assert_eq!(saved.note.as_deref(), Some("主路径可用"));
+        let detail = service.get_project_detail(&detail.project.id).unwrap();
+        assert_eq!(detail.versions.len(), 2);
+        assert_eq!(detail.current_change_summary.files.len(), 0);
+
+        let error = service
+            .save_version(&detail.project.id, None)
+            .err()
+            .expect("empty save should fail");
+        assert_eq!(error, "当前没有需要保存的变化。");
+    }
+
+    #[test]
+    fn rollback_creates_checkpoint_and_restores_target_version() {
+        let data_dir = tempdir().unwrap();
+        let work_tree = tempdir().unwrap();
+        fs::write(work_tree.path().join("README.md"), "initial").unwrap();
+        let service = ProjectService::new(data_dir.path().to_path_buf()).unwrap();
+        let initial_detail = service
+            .add_project(work_tree.path().to_string_lossy().to_string())
+            .unwrap();
+        let initial_version_id = initial_detail.versions[0].id.clone();
+
+        fs::write(work_tree.path().join("README.md"), "saved").unwrap();
+        service
+            .save_version(&initial_detail.project.id, Some("保存点".to_string()))
+            .unwrap();
+        fs::write(work_tree.path().join("README.md"), "broken").unwrap();
+
+        let detail = service
+            .rollback_to_version(&initial_detail.project.id, &initial_version_id)
+            .unwrap();
+
+        assert_eq!(fs::read_to_string(work_tree.path().join("README.md")).unwrap(), "initial");
+        assert_eq!(detail.versions.len(), 3);
+        assert!(detail.versions.iter().any(|version| version.is_rollback_checkpoint));
+        assert_eq!(detail.project.current_version_id.as_deref(), Some(initial_version_id.as_str()));
+    }
+
+    #[test]
+    fn export_copy_excludes_git_data_and_keeps_project_files() {
+        let source = tempdir().unwrap();
+        let target = tempdir().unwrap();
+        fs::write(source.path().join("README.md"), "hello").unwrap();
+        fs::write(source.path().join(".env"), "SECRET=local").unwrap();
+        fs::create_dir(source.path().join(".git")).unwrap();
+        fs::write(source.path().join(".git").join("HEAD"), "ref").unwrap();
+
+        copy_project_files(source.path(), target.path()).unwrap();
+
+        assert_eq!(fs::read_to_string(target.path().join("README.md")).unwrap(), "hello");
+        assert_eq!(fs::read_to_string(target.path().join(".env")).unwrap(), "SECRET=local");
+        assert!(!target.path().join(".git").exists());
+    }
+}
