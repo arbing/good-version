@@ -28,3 +28,11 @@
 - [技术实现约束](docs/technical-constraints.md)
 - [技术方案](docs/technical-plan.md)
 - [原型页面结构](docs/prototype-structure.md)
+
+## 原型
+
+高保真原型保存在 [`prototypes/`](prototypes/)：
+
+- `*.png`：高保真原型设计稿
+- `*.html`：HTML + Tailwind 高保真还原稿，可直接用浏览器打开
+- `assets/good-version-prototype.css`：原型共享样式
