@@ -111,7 +111,9 @@ function App() {
         projectId: detail.project.id,
         note: note.trim() ? note : null,
       });
-      await Promise.all([bootstrap(), loadDetail(detail.project.id)]);
+      const loadedProjects = await invoke<ProjectListItem[]>("list_projects");
+      setProjects(loadedProjects);
+      await loadDetail(detail.project.id);
       setShowSave(false);
       setNote("");
       setMessage("已保存当前好版本。");
