@@ -8,9 +8,11 @@
 
 ## 当前阶段
 
-当前处于产品定义和技术方案阶段。
+当前已从产品定义进入 MVP 工程实现阶段。
 
-主要资料分为两类：
+已建立 Tauri + React + TypeScript + Rust 工程骨架，并完成本地项目版本管理主路径：添加项目、保存好版本、查看时间线、查看变化、回退、导出副本、目录丢失提示、重新关联目录、存储占用展示、打开项目文件夹、修改显示名。
+
+主要资料分为三类：
 
 需求与方案文档在 `docs/` 目录：
 
@@ -29,6 +31,13 @@
 - `prototypes/*.html`：对应的 HTML + Tailwind 高保真还原稿
 - `prototypes/assets/good-version-prototype.css`：原型共享样式
 
+应用工程文件：
+
+- `package.json`：pnpm 脚本和前端依赖
+- `src/`：React + TypeScript 前端应用
+- `src-tauri/`：Tauri Rust 后端、Git 与文件系统能力
+- `vite.config.ts` / `tsconfig.json`：前端构建与类型配置
+
 ## 产品原则
 
 - 面向非技术用户，不要求理解 Git
@@ -41,6 +50,9 @@
 ## 首版技术方向
 
 - Tauri 桌面应用
+- React + TypeScript + Vite 前端
+- Rust 侧实现文件系统、Git、导出和项目管理能力
+- pnpm 作为前端包管理器
 - 支持 macOS + Windows
 - 应用内置 Git 能力，不要求用户安装 Git
 - 中文界面
@@ -51,3 +63,15 @@
 - 不主动扩大 MVP 范围
 - 不引入云同步、团队协作、分支管理、代码 diff、自动测试等首版明确不做的能力
 - 涉及回退逻辑时，优先保证可恢复和可验证
+- 完成 `docs/development-tasks.md` 中的任务后，及时更新对应进度
+- 优先使用 `pnpm` 运行前端脚本
+
+## 常用命令
+
+```bash
+pnpm install
+pnpm build
+pnpm exec tauri dev
+cargo check --manifest-path src-tauri/Cargo.toml
+cargo fmt --manifest-path src-tauri/Cargo.toml
+```

@@ -15,9 +15,35 @@
 
 - 桌面应用
 - 支持 macOS + Windows
-- Tauri + 内置 Git 操作层
+- Tauri + React + TypeScript + Rust
+- pnpm + Vite 前端工程
+- 应用内置 Git 操作层
 - 中文界面
 - 本地优先
+
+## 当前实现
+
+MVP 主路径已完成第一版工程实现：
+
+- 添加本地项目，并自动保存初始好版本
+- 手动保存当前好版本，可填写说明
+- 按时间线查看好版本
+- 查看每个好版本的文件变化摘要
+- 回退前自动保存当前状态，再回到指定好版本
+- 导出不包含版本历史的项目副本
+- 展示项目和版本数据占用
+- 处理项目目录丢失，并支持重新选择目录
+- 打开项目文件夹、修改项目显示名
+
+## 开发
+
+```bash
+pnpm install
+pnpm build
+pnpm exec tauri dev
+cargo check --manifest-path src-tauri/Cargo.toml
+cargo fmt --manifest-path src-tauri/Cargo.toml
+```
 
 ## 文档
 
