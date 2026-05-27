@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { afterEach, describe, expect, it } from "vitest";
 import App from "./App";
@@ -32,14 +32,37 @@ const version = {
   },
 };
 
+const secondProject = {
+  id: "project-2",
+  displayName: "第二个项目",
+  path: "/tmp/project-2",
+  gitDirPath: "/tmp/data/repositories/project-2",
+  usesExternalGitDir: true,
+  createdAt: "2026-05-27 11:00:00",
+  updatedAt: "2026-05-27 11:00:00",
+  currentVersionId: "version-2",
+};
+
+const secondVersion = {
+  ...version,
+  id: "version-2",
+  projectId: "project-2",
+};
+
 function projectList(): ProjectListItem[] {
-  return [{ ...baseProject, versionCount: 1, latestVersionAt: version.createdAt }];
+  return [
+    { ...baseProject, versionCount: 1, latestVersionAt: version.createdAt },
+    { ...secondProject, versionCount: 1, latestVersionAt: secondVersion.createdAt },
+  ];
 }
 
-function projectDetail(hasChanges: boolean): ProjectDetail {
+function projectDetail(hasChanges: boolean, projectId = "project-1"): ProjectDetail {
+  const project = projectId === "project-2" ? secondProject : baseProject;
+  const currentVersion = projectId === "project-2" ? secondVersion : version;
+
   return {
-    project: baseProject,
-    versions: [version],
+    project,
+    versions: [currentVersion],
     pathExists: true,
     storageUsage: {
       workTreeBytes: 1024,
@@ -138,5 +161,39 @@ describe("App", () => {
 
     await waitFor(() => expect(screen.getByText("有未保存的变化")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: /保存当前好版本/ })).toBeEnabled();
+  });
+
+  it("保存第二个项目后仍停留在当前项目", async () => {
+    const savedVersion = { ...secondVersion, id: "version-3", title: "保存的好版本" };
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = payload?.projectId === "project-2" ? "project-2" : "project-1";
+        return projectDetail(projectId === "project-2", projectId);
+      }
+      if (cmd === "save_version") {
+        expect(payload?.projectId).toBe("project-2");
+        return savedVersion;
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("当前没有未保存变化");
+    fireEvent.click(screen.getByRole("button", { name: "第二个项目/tmp/project-21 个好版本" }));
+    await screen.findByText("有未保存的变化");
+    fireEvent.click(screen.getByRole("button", { name: /保存当前好版本/ }));
+    fireEvent.change(screen.getByPlaceholderText("比如：首页能正常打开，按钮也能点击"), {
+      target: { value: "第二个项目可用" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+
+    await screen.findByText("已保存当前好版本。");
+    expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
 });
