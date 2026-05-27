@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>好版本 - 导出当前项目副本</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/good-version-prototype.css" />
+  </head>
+  <body class="min-h-screen p-0">
+    <main class="mx-auto flex h-screen items-stretch justify-center">
+      <section class="prototype-shell relative">
+        <header class="relative flex h-[50px] items-center justify-center border-b border-[#dfe3e6] bg-gradient-to-b from-white to-[#f4f6f5]">
+          <div class="absolute left-[28px] flex items-center gap-[12px]"><span class="traffic-dot bg-[#ff635b]"></span><span class="traffic-dot bg-[#ffbd3d]"></span><span class="traffic-dot bg-[#2fc857]"></span></div>
+          <h1 class="text-[18px] font-medium text-[#4c535a]">好版本</h1>
+          <div class="absolute right-[28px] flex items-center gap-[28px] text-[#56606a]"><i data-lucide="minus" class="h-[18px] w-[18px]"></i><i data-lucide="square" class="h-[16px] w-[16px]"></i><i data-lucide="x" class="h-[18px] w-[18px]"></i></div>
+        </header>
+
+        <div class="flex h-[calc(100%-50px)]">
+          <aside class="sidebar flex flex-col px-[20px] py-[34px]">
+            <div class="flex items-center gap-[13px]"><div class="shield-mark flex h-[48px] w-[48px] items-center justify-center rounded-[13px] text-white"><i data-lucide="shield-check" class="h-[31px] w-[31px]"></i></div><div class="text-[28px] font-bold">好版本</div></div>
+            <p class="mt-[13px] text-[17px] text-[#5d6670]">保存能用的状态，改坏了也能回来</p>
+            <h2 class="mt-[43px] text-[17px] font-medium text-[#4e5862]">我的项目</h2>
+            <div class="project-card active mt-[13px] flex h-[98px] items-center gap-[14px] rounded-[9px] px-[13px]"><div class="project-icon flex h-[56px] w-[56px] items-center justify-center rounded-[9px] text-[#278d4d]"><i data-lucide="panel-top" class="h-[33px] w-[33px]"></i></div><div><div class="text-[19px] font-bold">我的小网站</div><div class="mt-[5px] text-[14px] text-[#69727b]">D:\Projects\my-site</div><div class="mt-[5px] text-[14px] text-[#69727b]">2.4 GB · 10 个好版本</div></div></div>
+            <div class="project-card mt-[13px] flex h-[96px] items-center gap-[14px] rounded-[9px] px-[13px]"><div class="project-icon blue flex h-[56px] w-[56px] items-center justify-center rounded-[9px]"><i data-lucide="store" class="h-[32px] w-[32px]"></i></div><div><div class="text-[19px] font-bold">个人博客</div><div class="mt-[5px] text-[14px] text-[#69727b]">D:\Projects\blog</div><div class="mt-[5px] text-[14px] text-[#69727b]">1.1 GB · 6 个好版本</div></div></div>
+            <div class="project-card mt-[13px] flex h-[96px] items-center gap-[14px] rounded-[9px] px-[13px]"><div class="project-icon amber flex h-[56px] w-[56px] items-center justify-center rounded-[9px]"><i data-lucide="badge-check" class="h-[32px] w-[32px]"></i></div><div><div class="text-[19px] font-bold">待办清单</div><div class="mt-[5px] text-[14px] text-[#69727b]">D:\Projects\todo-app</div><div class="mt-[5px] text-[14px] text-[#69727b]">612 MB · 4 个好版本</div></div></div>
+            <div class="project-card mt-[13px] flex h-[96px] items-center gap-[14px] rounded-[9px] px-[13px]"><div class="project-icon purple flex h-[56px] w-[56px] items-center justify-center rounded-[9px]"><i data-lucide="chart-no-axes-column-increasing" class="h-[32px] w-[32px]"></i></div><div><div class="text-[19px] font-bold">数据看板</div><div class="mt-[5px] text-[14px] text-[#69727b]">D:\Projects\dashboard</div><div class="mt-[5px] text-[14px] text-[#69727b]">1.8 GB · 7 个好版本</div></div></div>
+            <button class="mt-[20px] flex h-[58px] items-center justify-center gap-[13px] rounded-[10px] border border-dashed border-[#c8ced4] bg-white/70 text-[18px] font-medium"><i data-lucide="plus-circle" class="h-[27px] w-[27px]"></i>添加项目</button>
+            <button class="local-note mt-auto flex h-[80px] items-center gap-[12px] rounded-[9px] px-[14px] text-left"><span class="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-white/70 text-[#c79a44]"><i data-lucide="shield-check" class="h-[24px] w-[24px]"></i></span><span class="flex-1"><span class="block whitespace-nowrap text-[15px] font-semibold">所有数据都保存在本地设备中</span><span class="mt-[5px] block text-[14px] text-[#6d7379]">安心使用，无需担心丢失</span></span><i data-lucide="chevron-right" class="h-[22px] w-[22px]"></i></button>
+          </aside>
+
+          <section class="app-main min-w-0 flex-1 px-[34px] py-[32px]">
+            <div class="flex items-start justify-between">
+              <div><div class="flex items-center gap-[13px]"><h2 class="text-[31px] font-bold">我的小网站</h2><i data-lucide="pencil" class="h-[21px] w-[21px] text-[#7c858d]"></i></div><div class="mt-[14px] flex items-center gap-[8px] text-[17px] text-[#505963]"><i data-lucide="folder" class="h-[21px] w-[21px]"></i>D:\Projects\my-site</div><div class="mt-[20px] flex items-center gap-[16px] text-[17px] text-[#505963]"><i data-lucide="upload" class="h-[21px] w-[21px]"></i><span>占用空间：2.4 GB</span><span class="soft-warning flex h-[39px] items-center gap-[8px] rounded-[8px] px-[13px] text-[16px] font-semibold"><i data-lucide="circle-alert" class="h-[21px] w-[21px]"></i>有未保存的变化</span></div></div>
+              <div class="flex flex-col items-end gap-[22px]"><div class="flex gap-[18px]"><button class="ghost-button flex h-[46px] items-center gap-[10px] rounded-[8px] px-[20px] text-[16px] font-medium"><i data-lucide="folder" class="h-[21px] w-[21px]"></i>打开项目文件夹</button><button class="ghost-button flex h-[46px] items-center gap-[10px] rounded-[8px] px-[20px] text-[16px] font-medium"><i data-lucide="pencil" class="h-[21px] w-[21px]"></i>修改显示名</button><button class="flex h-[46px] items-center gap-[10px] rounded-[8px] border border-[#238746] bg-white px-[20px] text-[16px] font-medium text-[#1f743d]"><i data-lucide="upload" class="h-[21px] w-[21px]"></i>导出当前项目副本</button></div><button class="primary-button flex h-[54px] items-center gap-[13px] rounded-[8px] px-[28px] text-[19px] font-bold"><i data-lucide="bookmark" class="h-[25px] w-[25px]"></i>保存当前好版本</button></div>
+            </div>
+
+            <div class="timeline mt-[28px] space-y-[18px]">
+              <article class="timeline-card current ml-[20px] flex h-[104px] items-center rounded-[10px] px-[22px]"><span class="timeline-dot current"></span><div class="w-[118px] border-r border-[#d2d7dc] pr-[18px]"><div class="text-[20px] font-bold">今天 15:42</div><div class="mt-[9px] text-[15px] text-[#68727b]">保存的好版本</div></div><div class="ml-[22px] flex-1"><div class="flex items-center gap-[18px]"><div class="text-[19px] font-bold">首页能正常打开，按钮也能点击</div><div class="flex items-center gap-[7px] text-[15px] font-semibold text-[#278d4d]"><i data-lucide="map-pin" class="h-[18px] w-[18px]"></i>当前在这里</div></div><div class="mt-[12px] flex gap-[12px]"><span class="chip chip-green">新增 3</span><span class="chip chip-blue">修改 8</span><span class="chip chip-red">删除 1</span></div></div><button class="ghost-button h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">查看变化</button><button class="disabled-button ml-[17px] h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">回到这里</button></article>
+              <article class="timeline-card ml-[20px] flex h-[104px] items-center rounded-[10px] px-[22px]"><span class="timeline-dot"></span><div class="w-[118px] border-r border-[#d2d7dc] pr-[18px]"><div class="text-[20px] font-bold">今天 11:28</div><div class="mt-[9px] text-[15px] text-[#68727b]">保存的好版本</div></div><div class="ml-[22px] flex-1"><div class="text-[19px] font-bold">调整了导航栏样式</div><div class="mt-[12px] flex gap-[12px]"><span class="chip chip-green">新增 1</span><span class="chip chip-blue">修改 5</span><span class="chip chip-red">删除 0</span></div></div><button class="ghost-button h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">查看变化</button><button class="ghost-button ml-[17px] h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">回到这里</button></article>
+              <article class="timeline-card ml-[20px] flex h-[104px] items-center rounded-[10px] px-[22px]"><span class="timeline-dot"></span><div class="w-[118px] border-r border-[#d2d7dc] pr-[18px]"><div class="text-[20px] font-bold">昨天 18:07</div><div class="mt-[9px] text-[15px] text-[#68727b]">保存的好版本</div></div><div class="ml-[22px] flex-1"><div class="text-[19px] font-bold">修复了表单提交问题</div><div class="mt-[12px] flex gap-[12px]"><span class="chip chip-green">新增 2</span><span class="chip chip-blue">修改 6</span><span class="chip chip-red">删除 1</span></div></div><button class="ghost-button h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">查看变化</button><button class="ghost-button ml-[17px] h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">回到这里</button></article>
+              <article class="timeline-card ml-[20px] flex h-[104px] items-center rounded-[10px] px-[22px]"><span class="timeline-dot"></span><div class="w-[118px] border-r border-[#d2d7dc] pr-[18px]"><div class="text-[20px] font-bold">昨天 10:31</div><div class="mt-[9px] text-[15px] text-[#68727b]">保存的好版本</div></div><div class="ml-[22px] flex-1"><div class="text-[19px] font-bold">添加了联系我们页面和表单</div><div class="mt-[12px] flex gap-[12px]"><span class="chip chip-green">新增 4</span><span class="chip chip-blue">修改 3</span><span class="chip chip-red">删除 0</span></div></div><button class="ghost-button h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">查看变化</button><button class="ghost-button ml-[17px] h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">回到这里</button></article>
+              <article class="timeline-card ml-[20px] flex h-[104px] items-center rounded-[10px] px-[22px]"><span class="timeline-dot"></span><div class="w-[118px] border-r border-[#d2d7dc] pr-[18px]"><div class="text-[20px] font-bold">前天 16:55</div><div class="mt-[9px] text-[15px] text-[#68727b]">保存的好版本</div></div><div class="ml-[22px] flex-1"><div class="text-[19px] font-bold">初始能用的版本（自动保存）</div><div class="mt-[12px] flex gap-[12px]"><span class="chip chip-green">新增 12</span><span class="chip chip-blue">修改 3</span><span class="chip chip-red">删除 0</span></div></div><button class="ghost-button h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">查看变化</button><button class="ghost-button ml-[17px] h-[48px] rounded-[8px] px-[26px] text-[17px] font-medium">回到这里</button></article>
+            </div>
+            <div class="mt-[10px] text-center text-[16px] text-[#8a929a]">已经到底了</div>
+          </section>
+        </div>
+
+        <div class="modal-scrim absolute inset-[50px_0_0_0] flex items-center justify-center">
+          <div class="modal w-[570px] rounded-[10px] p-[24px]">
+            <div class="flex items-center justify-between"><h2 class="text-[28px] font-bold">导出当前项目副本</h2><i data-lucide="x" class="h-[24px] w-[24px] text-[#4e5862]"></i></div>
+            <p class="mt-[14px] text-[17px] text-[#5d6670]">会复制当前项目文件，方便备份或发给别人。</p>
+            <div class="mt-[22px] flex items-center gap-[12px]"><label class="text-[18px] font-medium">导出到</label><div class="flex h-[42px] flex-1 items-center rounded-[7px] border border-[#d7dde1] bg-white px-[14px] text-[16px] text-[#38414a]">D:\Exports\我的小网站-副本</div><button class="ghost-button h-[42px] rounded-[7px] px-[18px] text-[16px] font-medium">选择位置</button></div>
+            <div class="mt-[18px] rounded-[8px] border border-[#e2e7ea] bg-white px-[18px] py-[14px]">
+              <div class="flex h-[29px] items-center gap-[11px] text-[17px]"><span class="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#2f9953] text-white"><i data-lucide="check" class="h-[13px] w-[13px]"></i></span>包含当前项目全部文件</div>
+              <div class="mt-[8px] flex h-[29px] items-center gap-[11px] text-[17px]"><span class="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#2f9953] text-white"><i data-lucide="check" class="h-[13px] w-[13px]"></i></span>包含隐藏配置文件</div>
+              <div class="mt-[8px] flex h-[29px] items-center gap-[11px] text-[17px]"><span class="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#e85252] text-white"><i data-lucide="minus" class="h-[13px] w-[13px]"></i></span>不包含版本历史</div>
+            </div>
+            <div class="soft-warning mt-[16px] flex h-[42px] items-center gap-[10px] rounded-[7px] px-[14px] text-[16px] font-semibold"><i data-lucide="circle-alert" class="h-[21px] w-[21px]"></i>导出不会改变当前项目。</div>
+            <div class="mt-[22px] flex justify-end gap-[14px]"><button class="ghost-button h-[43px] rounded-[8px] px-[46px] text-[17px] font-medium">取消</button><button class="primary-button h-[43px] rounded-[8px] px-[58px] text-[17px] font-bold">导出</button></div>
+          </div>
+        </div>
+
+        <div class="toast absolute bottom-[48px] right-[46px] flex h-[86px] items-center gap-[17px] rounded-[9px] px-[28px]">
+          <span class="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[#2f9953] text-white"><i data-lucide="check" class="h-[22px] w-[22px]"></i></span>
+          <span class="text-[18px] font-medium">已导出当前项目副本，不包含版本历史。</span>
+          <i data-lucide="x" class="ml-[16px] h-[20px] w-[20px] text-[#68727b]"></i>
+        </div>
+      </section>
+    </main>
+    <script>lucide.createIcons();</script>
+  </body>
+</html>

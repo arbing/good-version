@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>好版本 - 初始好版本</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/good-version-prototype.css" />
+  </head>
+  <body class="min-h-screen p-0">
+    <main class="mx-auto flex h-screen items-stretch justify-center">
+      <section class="prototype-shell">
+        <header class="relative flex h-[54px] items-center justify-center border-b border-[#dfe3e6] bg-gradient-to-b from-white to-[#f4f6f5]">
+          <div class="absolute left-[29px] flex items-center gap-[12px]">
+            <span class="traffic-dot bg-[#ff635b]"></span><span class="traffic-dot bg-[#ffbd3d]"></span><span class="traffic-dot bg-[#2fc857]"></span>
+          </div>
+          <h1 class="text-[18px] font-medium text-[#4c535a]">好版本</h1>
+          <div class="absolute right-[28px] flex items-center gap-[28px] text-[#56606a]">
+            <i data-lucide="minus" class="h-[18px] w-[18px]"></i><i data-lucide="square" class="h-[16px] w-[16px]"></i><i data-lucide="x" class="h-[18px] w-[18px]"></i>
+          </div>
+        </header>
+
+        <div class="flex h-[calc(100%-54px)]">
+          <aside class="sidebar flex flex-col px-[22px] py-[34px]">
+            <div class="flex items-center gap-[14px]">
+              <div class="shield-mark flex h-[48px] w-[48px] items-center justify-center rounded-[13px] text-white">
+                <i data-lucide="shield-check" class="h-[31px] w-[31px]"></i>
+              </div>
+              <div class="text-[28px] font-bold leading-none">好版本</div>
+            </div>
+            <p class="mt-[15px] text-[18px] text-[#5d6670]">保存能用的状态，改坏了也能回来</p>
+
+            <h2 class="mt-[56px] text-[18px] font-medium text-[#4e5862]">我的项目</h2>
+            <div class="project-card active mt-[13px] flex h-[110px] items-center gap-[16px] rounded-[10px] px-[14px]">
+              <div class="project-icon flex h-[58px] w-[58px] items-center justify-center rounded-[9px] text-[#278d4d]">
+                <i data-lucide="panel-top" class="h-[34px] w-[34px]"></i>
+              </div>
+              <div>
+                <div class="text-[20px] font-bold">我的小网站</div>
+                <div class="mt-[6px] text-[15px] text-[#69727b]">D:\Projects\my-site</div>
+                <div class="mt-[6px] text-[15px] text-[#69727b]">320 MB · 1 个好版本</div>
+              </div>
+            </div>
+
+            <button class="mt-auto flex h-[59px] items-center justify-center gap-[14px] rounded-[10px] border border-dashed border-[#c8ced4] bg-white/70 text-[20px] font-medium">
+              <i data-lucide="plus-circle" class="h-[28px] w-[28px]"></i>添加项目
+            </button>
+            <button class="local-note mt-[56px] flex h-[92px] items-center gap-[12px] rounded-[9px] px-[14px] text-left">
+              <span class="flex h-[38px] w-[38px] items-center justify-center rounded-full bg-white/70 text-[#c79a44]"><i data-lucide="shield-check" class="h-[25px] w-[25px]"></i></span>
+              <span class="flex-1">
+                <span class="block whitespace-nowrap text-[16px] font-semibold">所有数据都保存在本地设备中</span>
+                <span class="mt-[5px] block text-[15px] text-[#6d7379]">安心使用，无需担心丢失</span>
+              </span>
+              <i data-lucide="chevron-right" class="h-[22px] w-[22px]"></i>
+            </button>
+          </aside>
+
+          <section class="app-main flex min-w-0 flex-1 flex-col px-[44px] py-[35px]">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-[14px]">
+                  <h2 class="text-[34px] font-bold">我的小网站</h2>
+                  <i data-lucide="pencil" class="h-[22px] w-[22px] text-[#7c858d]"></i>
+                </div>
+                <div class="mt-[18px] flex items-center gap-[8px] text-[20px] text-[#505963]"><i data-lucide="folder" class="h-[22px] w-[22px]"></i>D:\Projects\my-site</div>
+                <div class="mt-[25px] flex items-center gap-[17px] text-[20px] text-[#505963]">
+                  <i data-lucide="upload" class="h-[22px] w-[22px]"></i><span>占用空间：320 MB</span>
+                  <span class="soft-success flex h-[39px] items-center gap-[10px] rounded-[8px] px-[13px] text-[17px] font-semibold text-[#258548]">
+                    <i data-lucide="check-circle" class="h-[22px] w-[22px]"></i>已保存初始好版本。以后改坏了，可以回到这里。
+                  </span>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-[30px]">
+                <div class="flex gap-[20px]">
+                  <button class="ghost-button flex h-[54px] items-center gap-[13px] rounded-[8px] px-[24px] text-[18px] font-medium"><i data-lucide="folder" class="h-[24px] w-[24px]"></i>打开项目文件夹</button>
+                  <button class="ghost-button flex h-[54px] items-center gap-[13px] rounded-[8px] px-[24px] text-[18px] font-medium"><i data-lucide="pencil" class="h-[23px] w-[23px]"></i>修改显示名</button>
+                  <button class="ghost-button flex h-[54px] items-center gap-[13px] rounded-[8px] px-[24px] text-[18px] font-medium"><i data-lucide="upload" class="h-[23px] w-[23px]"></i>导出当前项目副本</button>
+                </div>
+                <button class="primary-button flex h-[54px] items-center gap-[13px] rounded-[8px] px-[28px] text-[20px] font-bold"><i data-lucide="bookmark" class="h-[26px] w-[26px]"></i>保存当前好版本</button>
+              </div>
+            </div>
+
+            <div class="soft-success mt-[38px] flex h-[102px] items-center gap-[20px] rounded-[8px] px-[18px]">
+              <span class="flex h-[32px] w-[32px] items-center justify-center rounded-full bg-[#2f9953] text-white"><i data-lucide="check" class="h-[22px] w-[22px]"></i></span>
+              <div>
+                <div class="text-[22px] font-bold text-[#258548]">当前已经是已保存的好版本。</div>
+                <div class="mt-[10px] text-[18px] text-[#5d6670]">继续修改后，记得再保存新的好版本。</div>
+              </div>
+            </div>
+
+            <h3 class="mt-[31px] flex items-center gap-[9px] text-[24px] font-bold">好版本时间线 <i data-lucide="info" class="h-[21px] w-[21px] text-[#969fa7]"></i></h3>
+            <div class="timeline mt-[26px]">
+              <article class="timeline-card current ml-[35px] flex h-[160px] items-center rounded-[10px] px-[34px]">
+                <span class="timeline-dot current"></span>
+                <div class="seed-icon mr-[34px] flex h-[78px] w-[78px] items-center justify-center rounded-full text-[#238746]"><i data-lucide="sprout" class="h-[40px] w-[40px]"></i></div>
+                <div class="w-[134px] border-r border-[#d2d7dc] pr-[28px]">
+                  <div class="text-[22px] font-bold">今天 10:16</div>
+                  <div class="mt-[10px] text-[17px] text-[#6a737c]">保存的好版本</div>
+                </div>
+                <div class="ml-[28px] flex-1">
+                  <div class="flex items-center gap-[26px]">
+                    <div class="text-[22px] font-bold">初始好版本</div>
+                    <div class="flex items-center gap-[8px] text-[17px] font-semibold text-[#278d4d]"><i data-lucide="map-pin" class="h-[20px] w-[20px]"></i>当前在这里</div>
+                  </div>
+                  <p class="mt-[12px] text-[17px] text-[#68727b]">已保存项目的初始状态。</p>
+                  <div class="mt-[13px] flex gap-[14px]"><span class="chip chip-green">新增 12</span><span class="chip chip-blue">修改 0</span><span class="chip chip-red">删除 0</span></div>
+                </div>
+                <button class="ghost-button mr-[28px] h-[54px] rounded-[8px] px-[28px] text-[18px] font-medium">查看变化</button>
+                <button class="disabled-button h-[54px] rounded-[8px] px-[28px] text-[18px] font-medium">回到这里</button>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script>lucide.createIcons();</script>
+  </body>
+</html>

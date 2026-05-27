@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>好版本 - 空项目列表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/good-version-prototype.css" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#20242a",
+              muted: "#737b84",
+              line: "#dfe3e6",
+              panel: "#fbfcfb",
+              green: {
+                50: "#eef8f0",
+                100: "#dcefe1",
+                500: "#2f9953",
+                600: "#268446",
+                700: "#1f743d"
+              },
+              amber: {
+                50: "#fff7e9",
+                100: "#f8e7c9",
+                500: "#c79a44"
+              }
+            },
+            boxShadow: {
+              window: "0 18px 50px rgba(40, 45, 52, 0.12), 0 1px 2px rgba(40, 45, 52, 0.08)",
+              soft: "0 18px 45px rgba(53, 89, 65, 0.10)",
+              button: "0 14px 24px rgba(38, 132, 70, 0.24)"
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      .empty-card {
+        height: 430px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72)),
+          radial-gradient(circle at 50% 45%, rgba(47, 153, 83, 0.08), transparent 42%);
+      }
+
+      .folder-illustration {
+        width: 360px;
+        height: 260px;
+        position: relative;
+        filter: drop-shadow(0 24px 26px rgba(65, 116, 83, 0.14));
+      }
+
+      .folder-blob {
+        position: absolute;
+        left: 72px;
+        top: 10px;
+        width: 210px;
+        height: 210px;
+        border-radius: 9999px;
+        background: linear-gradient(180deg, rgba(47, 153, 83, 0.12), rgba(47, 153, 83, 0.04));
+      }
+
+      .folder-back {
+        position: absolute;
+        left: 82px;
+        top: 86px;
+        width: 214px;
+        height: 130px;
+        border-radius: 15px 15px 20px 20px;
+        background: linear-gradient(180deg, #9ab99e, #6f9877);
+      }
+
+      .folder-back::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: -26px;
+        width: 112px;
+        height: 42px;
+        border-radius: 14px 18px 0 0;
+        background: #9ab99e;
+      }
+
+      .paper {
+        position: absolute;
+        left: 120px;
+        top: 94px;
+        width: 170px;
+        height: 106px;
+        border-radius: 12px;
+        background: rgba(253, 255, 252, 0.92);
+        border: 1px solid rgba(111, 143, 119, 0.2);
+        box-shadow: 0 16px 25px rgba(72, 92, 78, 0.12);
+      }
+
+      .paper::before,
+      .paper::after {
+        content: "";
+        position: absolute;
+        right: 28px;
+        height: 6px;
+        border-radius: 999px;
+        background: #bdd2c1;
+      }
+
+      .paper::before {
+        top: 38px;
+        width: 58px;
+      }
+
+      .paper::after {
+        top: 58px;
+        width: 42px;
+      }
+
+      .paper-image {
+        position: absolute;
+        left: 28px;
+        bottom: 20px;
+        width: 68px;
+        height: 48px;
+        border-radius: 7px;
+        background:
+          linear-gradient(135deg, transparent 49%, rgba(121, 159, 130, 0.34) 50%),
+          linear-gradient(45deg, transparent 46%, rgba(86, 135, 97, 0.38) 47%),
+          #dfece2;
+      }
+
+      .folder-front {
+        position: absolute;
+        left: 70px;
+        top: 174px;
+        width: 238px;
+        height: 70px;
+        border-radius: 14px 14px 28px 28px;
+        background: linear-gradient(180deg, #bdd6c0, #82a889);
+        transform: perspective(320px) rotateX(7deg);
+      }
+
+      .leaf {
+        position: absolute;
+        right: 33px;
+        bottom: 52px;
+        width: 78px;
+        height: 96px;
+      }
+
+      .leaf span {
+        position: absolute;
+        width: 22px;
+        height: 64px;
+        border-radius: 22px 22px 4px 22px;
+        background: #92bd9b;
+        transform-origin: bottom center;
+      }
+
+      .leaf span:nth-child(1) {
+        left: 18px;
+        bottom: 0;
+        transform: rotate(-38deg);
+      }
+
+      .leaf span:nth-child(2) {
+        left: 34px;
+        bottom: 9px;
+        transform: rotate(-8deg);
+      }
+
+      .leaf span:nth-child(3) {
+        left: 47px;
+        bottom: 0;
+        transform: rotate(28deg);
+      }
+
+      .ground-shadow {
+        position: absolute;
+        left: 64px;
+        bottom: 4px;
+        width: 250px;
+        height: 24px;
+        border-radius: 999px;
+        background: rgba(55, 93, 65, 0.08);
+      }
+
+      .spark {
+        position: absolute;
+        color: #98bf9f;
+        font-weight: 700;
+      }
+
+    </style>
+  </head>
+  <body class="min-h-screen p-0">
+    <main class="mx-auto flex h-screen lg:h-auto items-stretch justify-center">
+      <section class="prototype-shell overflow-hidden rounded-[18px] border border-[#d5dadd] bg-[#f8faf9] shadow-window">
+        <header class="relative flex h-[50px] items-center justify-center border-b border-line bg-gradient-to-b from-white to-[#f4f6f5]">
+          <div class="absolute left-[28px] top-1/2 flex -translate-y-1/2 items-center gap-[12px]">
+            <span class="traffic-dot bg-[#ff635b]"></span>
+            <span class="traffic-dot bg-[#ffbd3d]"></span>
+            <span class="traffic-dot bg-[#2fc857]"></span>
+          </div>
+          <h1 class="text-[18px] font-medium tracking-normal text-[#4c535a]">好版本</h1>
+          <div class="absolute right-[27px] top-1/2 flex -translate-y-1/2 items-center gap-[28px] text-[#56606a]">
+            <i data-lucide="minus" class="h-[18px] w-[18px] stroke-[2]"></i>
+            <i data-lucide="square" class="h-[16px] w-[16px] stroke-[2]"></i>
+            <i data-lucide="x" class="h-[18px] w-[18px] stroke-[2]"></i>
+          </div>
+        </header>
+
+        <div class="flex h-[calc(100%-50px)]">
+          <aside class="sidebar flex shrink-0 flex-col border-r border-line bg-[#fbfcfb]/95 px-[22px] py-[35px]">
+            <div class="flex items-center gap-[14px]">
+              <div class="shield-mark flex h-[48px] w-[48px] items-center justify-center rounded-[13px] shadow-soft">
+                <i data-lucide="shield-check" class="h-[31px] w-[31px] text-white"></i>
+              </div>
+              <div>
+                <div class="text-[28px] font-bold leading-none tracking-normal text-ink">好版本</div>
+              </div>
+            </div>
+
+            <p class="mt-[15px] text-[18px] leading-[1.4] tracking-normal text-[#5d6670]">
+              保存能用的状态，改坏了也能回来
+            </p>
+
+            <section class="mt-[44px]">
+              <h2 class="text-[18px] font-medium text-[#4e5862]">我的项目</h2>
+              <div class="empty-card mt-[13px] flex rounded-[10px] border border-[#dfe4e7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
+                <div class="m-auto flex flex-col items-center">
+                  <i data-lucide="folder" class="h-[54px] w-[54px] text-[#b5bbc0]"></i>
+                  <p class="mt-[18px] text-[24px] font-medium text-[#303740]">还没有项目</p>
+                  <p class="mt-[8px] text-[18px] text-[#818992]">添加项目后会在这里显示</p>
+                </div>
+              </div>
+
+              <button class="mt-[17px] flex h-[59px] w-full items-center justify-center gap-[14px] rounded-[10px] border border-dashed border-[#c8ced4] bg-white/70 text-[20px] font-medium text-[#2f353c] transition hover:border-green-500 hover:bg-green-50">
+                <i data-lucide="plus-circle" class="h-[28px] w-[28px] text-[#3f454b]"></i>
+                添加项目
+              </button>
+            </section>
+
+            <button class="mt-auto flex h-[88px] items-center gap-[12px] rounded-[9px] border border-amber-100 bg-amber-50 px-[14px] text-left shadow-[0_12px_24px_rgba(178,137,72,0.08)]">
+              <span class="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-white/70 text-amber-500">
+                <i data-lucide="shield-check" class="h-[24px] w-[24px]"></i>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block whitespace-nowrap text-[16px] font-semibold leading-[1.3] text-[#41454a]">所有数据都保存在本地设备中</span>
+                <span class="mt-[5px] block text-[15px] leading-[1.3] text-[#6d7379]">安心使用，无需担心丢失</span>
+              </span>
+              <i data-lucide="chevron-right" class="h-[22px] w-[22px] shrink-0 text-[#2e343a]"></i>
+            </button>
+          </aside>
+
+          <section class="relative flex min-w-0 flex-1 items-center justify-center bg-white">
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(48,153,83,0.055),transparent_24%),linear-gradient(180deg,#ffffff,#fbfcfb)]"></div>
+
+            <div class="relative -mt-[6px] flex flex-col items-center">
+              <div class="folder-illustration" aria-hidden="true">
+                <div class="folder-blob"></div>
+                <div class="spark left-[18px] top-[140px] text-[18px]">•</div>
+                <div class="spark right-[21px] top-[84px] text-[25px]">+</div>
+                <div class="spark left-[45px] top-[188px] text-[24px]">°</div>
+                <div class="spark left-[224px] top-[77px] text-[16px]">•</div>
+                <div class="leaf"><span></span><span></span><span></span></div>
+                <div class="folder-back"></div>
+                <div class="paper"><span class="paper-image"></span></div>
+                <div class="folder-front"></div>
+                <div class="ground-shadow"></div>
+              </div>
+
+              <h2 class="mt-[3px] text-[46px] font-bold leading-none tracking-normal text-[#2b3036]">还没有项目</h2>
+              <p class="mt-[17px] text-[20px] leading-[1.5] tracking-normal text-[#656e77]">
+                选择一个项目文件夹，先保存一个初始好版本。
+              </p>
+
+              <button class="mt-[24px] flex h-[62px] min-w-[256px] items-center justify-center gap-[15px] rounded-[8px] bg-gradient-to-b from-green-500 to-green-600 px-[34px] text-[25px] font-bold tracking-normal text-white shadow-button transition hover:from-green-600 hover:to-green-700">
+                <span class="flex h-[31px] w-[31px] items-center justify-center rounded-full border-[3px] border-white">
+                  <i data-lucide="plus" class="h-[20px] w-[20px] stroke-[3]"></i>
+                </span>
+                添加项目
+              </button>
+
+              <div class="mt-[22px] flex min-w-[362px] items-center justify-center gap-[18px] rounded-[8px] bg-amber-50 px-[27px] py-[16px] shadow-[0_14px_32px_rgba(192,151,88,0.10)]">
+                <span class="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-white/65 text-amber-500">
+                  <i data-lucide="shield-check" class="h-[28px] w-[28px]"></i>
+                </span>
+                <span>
+                  <span class="block text-[19px] font-semibold leading-[1.35] text-[#3e444a]">所有数据都保存在本地设备中</span>
+                  <span class="mt-[3px] block text-[16px] leading-[1.35] text-[#666e76]">安心使用，无需担心丢失</span>
+                </span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
