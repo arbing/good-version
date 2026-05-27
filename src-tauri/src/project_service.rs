@@ -97,6 +97,7 @@ impl ProjectService {
         Ok(ProjectDetail {
             storage_usage: storage_usage(&project),
             path_exists: Path::new(&project.path).exists(),
+            current_change_summary: GitService::change_summary(&repository)?,
             project,
             versions: vec![initial_version],
         })
@@ -113,11 +114,17 @@ impl ProjectService {
         versions.sort_by(|a, b| b.created_at.cmp(&a.created_at));
         let path_exists = Path::new(&project.path).exists();
         let storage_usage = storage_usage(&project);
+        let current_change_summary = if path_exists {
+            GitService::change_summary(&open_project_repository(&project)?)?
+        } else {
+            Default::default()
+        };
         Ok(ProjectDetail {
             project,
             versions,
             path_exists,
             storage_usage,
+            current_change_summary,
         })
     }
 

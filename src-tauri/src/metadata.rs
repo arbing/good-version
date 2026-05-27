@@ -37,6 +37,7 @@ pub struct ProjectDetail {
     pub versions: Vec<Version>,
     pub path_exists: bool,
     pub storage_usage: StorageUsage,
+    pub current_change_summary: ChangeSummary,
 }
 
 #[derive(Clone, Default, Serialize)]

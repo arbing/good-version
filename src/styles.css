@@ -107,12 +107,14 @@ button:disabled {
 .primary-button,
 .secondary-button,
 .warning-button {
-  gap: 10px;
-  min-height: 46px;
+  flex-shrink: 0;
+  gap: 8px;
+  min-height: 42px;
   border: 0;
   border-radius: 10px;
-  padding: 0 18px;
+  padding: 0 14px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .add-button,
@@ -228,17 +230,28 @@ button:disabled {
 }
 
 .detail-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 20px;
+}
+
+.detail-header > div:first-child {
+  min-width: 0;
 }
 
 .header-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
-  gap: 10px;
-  max-width: 620px;
+  gap: 8px;
+}
+
+.header-actions .secondary-button,
+.header-actions .primary-button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
 }
 
 .detail-header h2 {
@@ -247,10 +260,18 @@ button:disabled {
 
 .detail-header p {
   display: flex;
+  max-width: 100%;
   align-items: center;
   gap: 8px;
   margin: 14px 0 0;
+  overflow: hidden;
   color: #505963;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-header p svg {
+  flex-shrink: 0;
 }
 
 .timeline {
@@ -272,12 +293,12 @@ button:disabled {
 
 .timeline-card {
   position: relative;
-  gap: 22px;
+  gap: 16px;
   min-height: 104px;
   margin-bottom: 16px;
   border: 1px solid #e0e4e7;
   border-radius: 12px;
-  padding: 0 22px;
+  padding: 0 18px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 8px 22px rgba(45, 52, 60, 0.035);
 }
@@ -303,7 +324,8 @@ button:disabled {
 }
 
 .version-time {
-  width: 120px;
+  width: 108px;
+  flex-shrink: 0;
   border-right: 1px solid #d2d7dc;
 }
 
@@ -313,21 +335,42 @@ button:disabled {
 }
 
 .version-body {
+  min-width: 0;
   flex: 1;
+}
+
+.version-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.version-actions .secondary-button {
+  min-height: 38px;
+  padding: 0 12px;
 }
 
 .version-title {
   gap: 14px;
+  min-width: 0;
+}
+
+.version-title strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .version-title span {
+  flex-shrink: 0;
   color: #278d4d;
   font-size: 14px;
   font-weight: 700;
 }
 
 .chips {
-  gap: 10px;
+  gap: 8px;
   margin-top: 14px;
 }
 
@@ -337,8 +380,9 @@ button:disabled {
 }
 
 .chip {
+  flex-shrink: 0;
   border-radius: 7px;
-  padding: 6px 14px;
+  padding: 6px 12px;
   font-weight: 700;
 }
 
@@ -422,16 +466,38 @@ button:disabled {
 }
 
 .rollback-target,
-.missing-state {
+.missing-state,
+.change-state {
   border-radius: 10px;
   padding: 12px;
   background: #fff7e9;
   color: #6d5a32;
 }
 
-.missing-state {
+.missing-state,
+.change-state {
   margin-top: 22px;
   border: 1px solid #f6d29a;
+}
+
+.change-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f7faf8;
+  color: #5d6670;
+}
+
+.change-state.active {
+  border-color: #b8dfc5;
+  background: #e8f5eb;
+  color: #1d6f3a;
+}
+
+.change-state strong,
+.change-state span {
+  white-space: nowrap;
 }
 
 .missing-state h3 {

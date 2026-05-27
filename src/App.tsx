@@ -31,6 +31,18 @@ function App() {
     void loadDetail(selectedProjectId);
   }, [selectedProjectId]);
 
+  useEffect(() => {
+    if (!selectedProjectId || !detail?.pathExists) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      void loadDetail(selectedProjectId, false);
+    }, 2000);
+
+    return () => window.clearInterval(timer);
+  }, [selectedProjectId, detail?.pathExists]);
+
   async function bootstrap() {
     setLoading(true);
     try {
@@ -48,16 +60,25 @@ function App() {
     }
   }
 
-  async function loadDetail(projectId: string) {
+  async function loadDetail(projectId: string, showError = true) {
     try {
       setDetail(await invoke<ProjectDetail>("get_project_detail", { projectId }));
     } catch (error) {
-      setMessage(toMessage(error));
+      if (showError) {
+        setMessage(toMessage(error));
+      }
     }
   }
 
   async function addProject() {
-    const selected = await open({ directory: true, multiple: false });
+    setMessage(undefined);
+    let selected: string | null | string[];
+    try {
+      selected = await open({ directory: true, multiple: false });
+    } catch (error) {
+      setMessage(toMessage(error));
+      return;
+    }
     if (typeof selected !== "string") {
       return;
     }
@@ -365,6 +386,7 @@ function ProjectDetailView({
 }) {
   const currentVersionId = detail.project.currentVersionId;
   const hasVersions = detail.versions.length > 0;
+  const hasChanges = detail.currentChangeSummary.files.length > 0;
 
   return (
     <>
@@ -378,7 +400,7 @@ function ProjectDetailView({
           <button className="secondary-button" disabled={loading || !detail.pathExists} onClick={onOpenFolder}><Folder size={18} /> 打开项目文件夹</button>
           <button className="secondary-button" disabled={loading} onClick={onEditName}><Pencil size={18} /> 修改显示名</button>
           <button className="secondary-button" disabled={loading || !detail.pathExists} onClick={onExport}><Download size={18} /> 导出当前项目副本</button>
-          <button className="primary-button" disabled={loading || !detail.pathExists} onClick={onOpenSave}>
+          <button className="primary-button" disabled={loading || !detail.pathExists || !hasChanges} onClick={onOpenSave}>
             <Bookmark size={20} /> 保存当前好版本
           </button>
         </div>
@@ -389,6 +411,24 @@ function ProjectDetailView({
           <h3>项目文件夹不见了</h3>
           <p>可能被移动或删除了。你可以重新选择项目文件夹，外置保存的数据仍然保留在本地。</p>
           <button className="primary-button" disabled={loading} onClick={onRelink}>重新选择项目目录</button>
+        </section>
+      )}
+
+      {detail.pathExists && (
+        <section className={`change-state ${hasChanges ? "active" : ""}`}>
+          {hasChanges ? (
+            <>
+              <strong>有未保存的变化</strong>
+              <span>
+                新增 {detail.currentChangeSummary.added} · 修改 {detail.currentChangeSummary.modified} · 删除 {detail.currentChangeSummary.deleted}
+              </span>
+            </>
+          ) : (
+            <>
+              <strong>当前没有未保存变化</strong>
+              <span>保存按钮会在项目文件变化后亮起。</span>
+            </>
+          )}
         </section>
       )}
 
@@ -445,8 +485,10 @@ function VersionCard({
           <span className="chip delete">删除 {version.changeSummary.deleted}</span>
         </div>
       </div>
-      <button className="secondary-button" onClick={onShowChanges}>查看变化</button>
-      <button className="secondary-button" disabled={current} onClick={onRollback}>回到这里</button>
+      <div className="version-actions">
+        <button className="secondary-button" onClick={onShowChanges}>查看变化</button>
+        <button className="secondary-button" disabled={current} onClick={onRollback}>回到这里</button>
+      </div>
     </article>
   );
 }

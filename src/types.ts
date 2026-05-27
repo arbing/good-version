@@ -46,6 +46,7 @@ export type ProjectDetail = {
   versions: Version[];
   pathExists: boolean;
   storageUsage: StorageUsage;
+  currentChangeSummary: ChangeSummary;
 };
 
 export type StorageUsage = {
