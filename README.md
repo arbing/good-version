@@ -27,6 +27,7 @@
 - [首版功能边界](docs/scope.md)
 - [技术实现约束](docs/technical-constraints.md)
 - [技术方案](docs/technical-plan.md)
+- [开发任务拆分](docs/development-tasks.md)
 - [原型页面结构](docs/prototype-structure.md)
 
 ## 原型

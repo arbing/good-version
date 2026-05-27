@@ -20,6 +20,7 @@
 - `docs/scope.md`：首版功能边界
 - `docs/technical-constraints.md`：技术实现约束
 - `docs/technical-plan.md`：技术方案
+- `docs/development-tasks.md`：开发任务拆分
 - `docs/prototype-structure.md`：原型页面结构
 
 高保真原型在 `prototypes/` 目录：
