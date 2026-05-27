@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Bookmark, Download, Folder, Pencil, PlusCircle, ShieldCheck, X } from "lucide-react";
+import { Bookmark, CheckCircle, Download, Folder, Pencil, PlusCircle, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 
@@ -427,8 +427,8 @@ function ProjectDetailView({
             </>
           ) : (
             <>
-              <strong>当前没有未保存变化</strong>
-              <span>保存按钮会在项目文件变化后亮起。</span>
+              <strong><CheckCircle size={20} /> 当前已经是已保存的好版本。</strong>
+              <span>继续修改后，记得再保存新的好版本。</span>
             </>
           )}
         </section>

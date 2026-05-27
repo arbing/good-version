@@ -92,6 +92,12 @@ function appStatus(): AppStatus {
   return { dataDir: "/tmp/good-version" };
 }
 
+function projectIdFromPayload(payload: unknown) {
+  return typeof payload === "object" && payload !== null && "projectId" in payload
+    ? String(payload.projectId)
+    : undefined;
+}
+
 describe("App", () => {
   afterEach(() => {
     clearMocks();
@@ -112,7 +118,7 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("当前没有未保存变化");
+    await screen.findByText("当前已经是已保存的好版本。");
     expect(screen.getByRole("button", { name: /保存当前好版本/ })).toBeDisabled();
   });
 
@@ -153,7 +159,7 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("当前没有未保存变化");
+    await screen.findByText("当前已经是已保存的好版本。");
 
     await act(async () => {
       await new Promise((resolve) => window.setTimeout(resolve, 2100));
@@ -173,18 +179,18 @@ describe("App", () => {
         return projectList();
       }
       if (cmd === "get_project_detail") {
-        const projectId = payload?.projectId === "project-2" ? "project-2" : "project-1";
+        const projectId = projectIdFromPayload(payload) === "project-2" ? "project-2" : "project-1";
         return projectDetail(projectId === "project-2", projectId);
       }
       if (cmd === "save_version") {
-        expect(payload?.projectId).toBe("project-2");
+        expect(projectIdFromPayload(payload)).toBe("project-2");
         return savedVersion;
       }
     });
 
     render(<App />);
 
-    await screen.findByText("当前没有未保存变化");
+    await screen.findByText("当前已经是已保存的好版本。");
     fireEvent.click(screen.getByRole("button", { name: "第二个项目/tmp/project-21 个好版本" }));
     await screen.findByText("有未保存的变化");
     fireEvent.click(screen.getByRole("button", { name: /保存当前好版本/ }));
@@ -225,7 +231,7 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("当前没有未保存变化");
+    await screen.findByText("当前已经是已保存的好版本。");
     fireEvent.click(screen.getByRole("button", { name: "查看变化" }));
 
     expect(screen.getByRole("heading", { name: "这次变化" })).toBeInTheDocument();
@@ -261,7 +267,7 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("当前没有未保存变化");
+    await screen.findByText("当前已经是已保存的好版本。");
     fireEvent.click(screen.getAllByRole("button", { name: "回到这里" })[1]);
     expect(screen.getByText("回到这个好版本？")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "取消" }));
