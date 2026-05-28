@@ -20,8 +20,42 @@ test("空项目状态显示添加入口", async ({ page }) => {
 
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "先添加一个项目" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "还没有项目" })).toBeVisible();
+  await expect(page.getByText("添加项目后会在这里显示")).toBeVisible();
+  await expect(page.getByText("选择一个项目文件夹，先保存一个初始好版本。")).toBeVisible();
   await expect(page.getByRole("button", { name: "添加项目" }).last()).toBeVisible();
+  await expect(page.getByRole("button", { name: /所有数据都保存在本地设备中/ }).last()).toBeVisible();
+});
+
+test("空项目状态连续点击本地数据区块会打开数据目录", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__TAURI_INTERNALS__ = {
+      invoke: async (cmd: string) => {
+        if (cmd === "get_app_status") {
+          return { dataDir: "/tmp/good-version" };
+        }
+        if (cmd === "list_projects") {
+          return [];
+        }
+        if (cmd === "open_data_dir") {
+          window.localStorage.setItem("open-data-dir-called", "yes");
+        }
+        return null;
+      },
+      transformCallback: () => 1,
+      unregisterCallback: () => undefined,
+      convertFileSrc: (filePath: string) => filePath,
+    };
+  });
+
+  await page.goto("/");
+
+  const localDataNote = page.getByRole("button", { name: /所有数据都保存在本地设备中/ }).first();
+  for (let index = 0; index < 6; index += 1) {
+    await localDataNote.click();
+  }
+
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("open-data-dir-called"))).toBe("yes");
 });
 
 test("有未保存变化时保存入口亮起并展示提示", async ({ page }) => {

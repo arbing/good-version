@@ -129,6 +129,12 @@ fn open_project_folder(
 }
 
 #[tauri::command]
+fn open_data_dir(app: AppHandle, state: State<AppState>) -> Result<(), String> {
+    let service = service(&app, &state)?;
+    service.open_data_dir().map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn export_project_copy(
     app: AppHandle,
     state: State<AppState>,
@@ -157,6 +163,7 @@ fn main() {
             update_project_name,
             relink_project_path,
             open_project_folder,
+            open_data_dir,
             export_project_copy
         ])
         .run(tauri::generate_context!())

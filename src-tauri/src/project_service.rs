@@ -202,6 +202,10 @@ impl ProjectService {
         open_path(&project.path)
     }
 
+    pub fn open_data_dir(&self) -> Result<(), String> {
+        open_path(&self.store.data_dir().to_string_lossy())
+    }
+
     pub fn export_project_copy(&self, project_id: &str, target_path: String) -> Result<(), String> {
         let project = self
             .store

@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Bookmark, CheckCircle, Download, Folder, Pencil, PlusCircle, ShieldCheck, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Bookmark, CheckCircle, ChevronRight, Download, Folder, Pencil, Plus, PlusCircle, ShieldCheck, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 
 function App() {
@@ -18,6 +18,8 @@ function App() {
   const [rollbackVersion, setRollbackVersion] = useState<Version>();
   const [message, setMessage] = useState<string>();
   const [loading, setLoading] = useState(false);
+  const dataDirClickCount = useRef(0);
+  const dataDirClickTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     void bootstrap();
@@ -206,6 +208,29 @@ function App() {
     }
   }
 
+  async function openDataDir() {
+    try {
+      await invoke("open_data_dir");
+    } catch (error) {
+      setMessage(toMessage(error));
+    }
+  }
+
+  function handleDataDirClick() {
+    window.clearTimeout(dataDirClickTimer.current);
+    dataDirClickCount.current += 1;
+
+    if (dataDirClickCount.current >= 6) {
+      dataDirClickCount.current = 0;
+      void openDataDir();
+      return;
+    }
+
+    dataDirClickTimer.current = window.setTimeout(() => {
+      dataDirClickCount.current = 0;
+    }, 1200);
+  }
+
   async function exportProjectCopy() {
     if (!detail) {
       return;
@@ -245,28 +270,31 @@ function App() {
           <PlusCircle size={22} /> 添加项目
         </button>
 
-        <div className="project-list">
-          {projects.length === 0 ? (
-            <EmptyState />
-          ) : (
-            projects.map((project) => (
-              <button
-                className={`project-card ${project.id === selectedProjectId ? "active" : ""}`}
-                key={project.id}
-                onClick={() => setSelectedProjectId(project.id)}
-              >
-                <span className="project-icon"><Folder size={24} /></span>
-                <span>
-                  <strong>{project.displayName}</strong>
-                  <small>{project.path}</small>
-                  <small>{project.versionCount} 个好版本</small>
-                </span>
-              </button>
-            ))
-          )}
-        </div>
+        <section className="project-section">
+          <h2>我的项目</h2>
+          <div className="project-list">
+            {projects.length === 0 ? (
+              <EmptyState />
+            ) : (
+              projects.map((project) => (
+                <button
+                  className={`project-card ${project.id === selectedProjectId ? "active" : ""}`}
+                  key={project.id}
+                  onClick={() => setSelectedProjectId(project.id)}
+                >
+                  <span className="project-icon"><Folder size={24} /></span>
+                  <span>
+                    <strong>{project.displayName}</strong>
+                    <small>{project.path}</small>
+                    <small>{project.versionCount} 个好版本</small>
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </section>
 
-        {status && <p className="local-note">数据保存在本地：{status.dataDir}</p>}
+        {status && <LocalDataNote onClick={handleDataDirClick} />}
       </aside>
 
       <section className="content">
@@ -289,12 +317,14 @@ function App() {
           />
         ) : (
           <section className="hero-empty">
-            <ShieldCheck size={60} />
-            <h2>先添加一个项目</h2>
-            <p>选择本地文件夹后，会自动保存第一个好版本。</p>
-            <button className="primary-button" disabled={loading} onClick={addProject}>
+            <FolderIllustration />
+            <h2>还没有项目</h2>
+            <p>选择一个项目文件夹，先保存一个初始好版本。</p>
+            <button className="primary-button hero-add-button" disabled={loading} onClick={addProject}>
+              <span><Plus size={20} /></span>
               添加项目
             </button>
+            {status && <LocalDataNote variant="hero" onClick={handleDataDirClick} />}
           </section>
         )}
       </section>
@@ -545,9 +575,45 @@ function FileChangeGroup({
 function EmptyState() {
   return (
     <div className="empty-state">
-      <ShieldCheck size={36} />
+      <Folder size={54} />
       <strong>还没有项目</strong>
-      <small>添加项目后会自动保存初始好版本。</small>
+      <small>添加项目后会在这里显示</small>
+    </div>
+  );
+}
+
+function LocalDataNote({
+  variant,
+  onClick,
+}: {
+  variant?: "hero";
+  onClick: () => void;
+}) {
+  return (
+    <button className={`local-note ${variant === "hero" ? "hero" : ""}`} type="button" onClick={onClick}>
+      <span className="local-note-icon"><ShieldCheck size={24} /></span>
+      <span className="local-note-copy">
+        <strong>所有数据都保存在本地设备中</strong>
+        <small>安心使用，无需担心丢失</small>
+      </span>
+      <ChevronRight size={22} />
+    </button>
+  );
+}
+
+function FolderIllustration() {
+  return (
+    <div className="folder-illustration" aria-hidden="true">
+      <div className="folder-blob" />
+      <div className="spark one">•</div>
+      <div className="spark two">+</div>
+      <div className="spark three">°</div>
+      <div className="spark four">•</div>
+      <div className="leaf"><span /><span /><span /></div>
+      <div className="folder-back" />
+      <div className="paper"><span className="paper-image" /></div>
+      <div className="folder-front" />
+      <div className="ground-shadow" />
     </div>
   );
 }

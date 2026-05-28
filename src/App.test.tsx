@@ -103,6 +103,56 @@ describe("App", () => {
     clearMocks();
   });
 
+  it("空项目状态对齐原型文案并保留添加入口", async () => {
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return [];
+      }
+    });
+
+    render(<App />);
+
+    expect(await screen.findAllByText("还没有项目")).toHaveLength(2);
+    expect(screen.getByText("添加项目后会在这里显示")).toBeInTheDocument();
+    expect(screen.getByText("选择一个项目文件夹，先保存一个初始好版本。")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /添加项目/ })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /所有数据都保存在本地设备中/ })).toHaveLength(2);
+  });
+
+  it("连续点击 6 次本地数据区块后打开数据目录", async () => {
+    let openDataDirCalls = 0;
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return [];
+      }
+      if (cmd === "open_data_dir") {
+        openDataDirCalls += 1;
+      }
+    });
+
+    render(<App />);
+
+    const localDataNote = (await screen.findAllByRole("button", { name: /所有数据都保存在本地设备中/ }))[0];
+    for (let index = 0; index < 5; index += 1) {
+      fireEvent.click(localDataNote);
+    }
+    expect(openDataDirCalls).toBe(0);
+
+    fireEvent.click(localDataNote);
+    expect(openDataDirCalls).toBe(1);
+
+    for (let index = 0; index < 5; index += 1) {
+      fireEvent.click(localDataNote);
+    }
+    expect(openDataDirCalls).toBe(1);
+  });
+
   it("没有未保存变化时禁用保存入口", async () => {
     mockIPC((cmd) => {
       if (cmd === "get_app_status") {
