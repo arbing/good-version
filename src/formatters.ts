@@ -10,6 +10,14 @@ export function versionLabel(version: Version) {
   return "保存的好版本";
 }
 
+export function versionDisplayNote(version: Version, versionNumber: number) {
+  return version.note || version.title || numberedVersionNote(versionNumber);
+}
+
+export function numberedVersionNote(versionNumber: number) {
+  return `第 ${versionNumber} 个好版本`;
+}
+
 export function formatBytes(bytes: number) {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -24,5 +32,33 @@ export function formatBytes(bytes: number) {
 }
 
 export function formatDate(value: string) {
-  return value.slice(5, 16).replace("-", "/");
+  const date = parseDate(value);
+  const now = new Date();
+  const dateDay = startOfDay(date).getTime();
+  const today = startOfDay(now).getTime();
+  const dayDiff = Math.round((today - dateDay) / 86_400_000);
+  const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+  if (dayDiff === 0) {
+    return `今天 ${time}`;
+  }
+  if (dayDiff === 1) {
+    return `昨天 ${time}`;
+  }
+  if (dayDiff === 2) {
+    return `前天 ${time}`;
+  }
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${time}`;
+}
+
+function parseDate(value: string) {
+  return new Date(value.replace(" ", "T"));
+}
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function pad(value: number) {
+  return String(value).padStart(2, "0");
 }

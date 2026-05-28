@@ -131,10 +131,16 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
     const localNote = document.querySelector(".sidebar > .local-note") as HTMLElement;
     const sidebar = document.querySelector(".sidebar") as HTMLElement;
 
+    const timelineScroll = document.querySelector(".timeline-scroll") as HTMLElement;
+    const resizer = document.querySelector(".sidebar-resizer") as HTMLElement;
+
     return {
       bodyScrollable: document.documentElement.scrollHeight > window.innerHeight || document.body.scrollHeight > window.innerHeight,
       projectListScrollable: projectList.scrollHeight > projectList.clientHeight,
       contentScrollable: content.scrollHeight > content.clientHeight,
+      timelineScrollable: timelineScroll.scrollHeight > timelineScroll.clientHeight,
+      resizerLineCount: window.getComputedStyle(resizer, "::before").width,
+      sidebarBorderRight: window.getComputedStyle(sidebar).borderRightWidth,
       brandVisible: brand.getBoundingClientRect().top >= 0,
       addButtonVisible: addButton.getBoundingClientRect().top >= 0,
       localNoteVisible: localNote.getBoundingClientRect().bottom <= window.innerHeight,
@@ -145,7 +151,10 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
 
   expect(layout.bodyScrollable).toBe(false);
   expect(layout.projectListScrollable).toBe(true);
-  expect(layout.contentScrollable).toBe(true);
+  expect(layout.contentScrollable).toBe(false);
+  expect(layout.timelineScrollable).toBe(true);
+  expect(layout.resizerLineCount).toBe("1px");
+  expect(layout.sidebarBorderRight).toBe("0px");
   expect(layout.brandVisible).toBe(true);
   expect(layout.addButtonVisible).toBe(true);
   expect(layout.localNoteVisible).toBe(true);
@@ -245,4 +254,16 @@ test("有未保存变化时保存入口亮起并展示提示", async ({ page }) 
   await expect(page.getByText("有未保存的变化")).toBeVisible();
   await expect(page.getByText("新增 1 · 修改 0 · 删除 0")).toBeVisible();
   await expect(page.getByRole("button", { name: /保存当前好版本/ })).toBeEnabled();
+
+  const headerLayout = await page.evaluate(() => {
+    const title = document.querySelector(".project-name-row") as HTMLElement;
+    const saveButton = document.querySelector(".save-version-button") as HTMLElement;
+    return {
+      saveBelowTitle: saveButton.getBoundingClientRect().top > title.getBoundingClientRect().bottom,
+      exportButtonVisible: Boolean([...document.querySelectorAll("button")].find((button) => button.textContent?.includes("导出当前项目副本"))),
+    };
+  });
+
+  expect(headerLayout.saveBelowTitle).toBe(true);
+  expect(headerLayout.exportButtonVisible).toBe(false);
 });

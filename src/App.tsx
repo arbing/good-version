@@ -4,6 +4,7 @@ import { Folder, Plus, PlusCircle, ShieldCheck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { EmptyState, FolderIllustration, LocalDataNote } from "./components/EmptyStates";
 import { ChangeSummaryDrawer, ProjectDetailView } from "./components/ProjectDetailView";
+import { numberedVersionNote } from "./formatters";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 
 const DEFAULT_SIDEBAR_WIDTH = 380;
@@ -18,7 +19,6 @@ function App() {
   const [note, setNote] = useState("");
   const [showSave, setShowSave] = useState(false);
   const [editingName, setEditingName] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [selectedVersion, setSelectedVersion] = useState<Version>();
   const [rollbackVersion, setRollbackVersion] = useState<Version>();
@@ -130,7 +130,7 @@ function App() {
     try {
       await invoke<Version>("save_version", {
         projectId: detail.project.id,
-        note: note.trim() ? note : null,
+        note: note.trim() || nextVersionNote(detail),
       });
       const loadedProjects = await invoke<ProjectListItem[]>("list_projects");
       setProjects(loadedProjects);
@@ -280,30 +280,6 @@ function App() {
     window.addEventListener("blur", stopResize, { once: true });
   }
 
-  async function exportProjectCopy() {
-    if (!detail) {
-      return;
-    }
-    const selected = await open({ directory: true, multiple: false });
-    if (typeof selected !== "string") {
-      return;
-    }
-    setLoading(true);
-    setMessage(undefined);
-    try {
-      await invoke("export_project_copy", {
-        projectId: detail.project.id,
-        targetPath: selected,
-      });
-      setExporting(false);
-      setMessage("已导出当前项目副本，可以在目标文件夹中打开。");
-    } catch (error) {
-      setMessage(toMessage(error));
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <main className="app-shell">
       <aside className="sidebar" style={{ width: sidebarWidth }}>
@@ -363,11 +339,15 @@ function App() {
             onSelectVersion={setSelectedVersion}
             onRollback={setRollbackVersion}
             onOpenFolder={openProjectFolder}
-            onEditName={() => {
+            editingName={editingName}
+            projectName={projectName}
+            onStartEditName={() => {
               setProjectName(detail.project.displayName);
               setEditingName(true);
             }}
-            onExport={() => setExporting(true)}
+            onProjectNameChange={setProjectName}
+            onCancelEditName={() => setEditingName(false)}
+            onSubmitEditName={renameProject}
             onRelink={relinkProject}
           />
         ) : (
@@ -403,34 +383,11 @@ function App() {
         </div>
       )}
 
-      {editingName && (
-        <div className="modal-mask">
-          <div className="modal">
-            <h3>修改显示名</h3>
-            <input value={projectName} onChange={(event) => setProjectName(event.target.value)} />
-            <div className="modal-actions">
-              <button className="secondary-button" onClick={() => setEditingName(false)}>取消</button>
-              <button className="primary-button" disabled={loading} onClick={renameProject}>保存</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {exporting && (
-        <div className="modal-mask">
-          <div className="modal">
-            <h3>导出当前项目副本</h3>
-            <p>请选择一个空文件夹，导出的副本不包含版本历史。</p>
-            <div className="modal-actions">
-              <button className="secondary-button" onClick={() => setExporting(false)}>取消</button>
-              <button className="primary-button" disabled={loading} onClick={exportProjectCopy}>选择文件夹</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {selectedVersion && (
-        <ChangeSummaryDrawer version={selectedVersion} onClose={() => setSelectedVersion(undefined)} />
+        <>
+          <button className="drawer-backdrop" aria-label="关闭变化抽屉" onClick={() => setSelectedVersion(undefined)} />
+          <ChangeSummaryDrawer version={selectedVersion} onClose={() => setSelectedVersion(undefined)} />
+        </>
       )}
 
       {rollbackVersion && (
@@ -448,6 +405,10 @@ function App() {
       )}
     </main>
   );
+}
+
+function nextVersionNote(detail: ProjectDetail) {
+  return numberedVersionNote(detail.versions.length + 1);
 }
 
 function toMessage(error: unknown) {

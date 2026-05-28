@@ -92,10 +92,16 @@ function appStatus(): AppStatus {
   return { dataDir: "/tmp/good-version" };
 }
 
+function payloadField(payload: unknown, key: string) {
+  if (typeof payload !== "object" || payload === null || !(key in payload)) {
+    return undefined;
+  }
+
+  return (payload as Record<string, unknown>)[key];
+}
+
 function projectIdFromPayload(payload: unknown) {
-  return typeof payload === "object" && payload !== null && "projectId" in payload
-    ? String(payload.projectId)
-    : undefined;
+  return payloadField(payload, "projectId")?.toString();
 }
 
 describe("App", () => {
@@ -234,6 +240,7 @@ describe("App", () => {
       }
       if (cmd === "save_version") {
         expect(projectIdFromPayload(payload)).toBe("project-2");
+        expect(payloadField(payload, "note")).toBe("第二个项目可用");
         return savedVersion;
       }
     });
@@ -253,7 +260,63 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
 
-  it("可以查看版本变化抽屉且不展示技术术语", async () => {
+  it("空说明保存时使用第 N 个好版本作为默认说明", async () => {
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return projectDetail(true);
+      }
+      if (cmd === "save_version") {
+        expect(payloadField(payload, "note")).toBe("第 2 个好版本");
+        return { ...version, id: "version-2", title: "第 2 个好版本" };
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("有未保存的变化");
+    fireEvent.click(screen.getByRole("button", { name: /保存当前好版本/ }));
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+
+    await screen.findByText("已保存当前好版本。");
+  });
+
+  it("可以在项目名右侧就地修改显示名", async () => {
+    const renamedDetail = { ...projectDetail(false), project: { ...baseProject, displayName: "新项目名" } };
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return projectDetail(false);
+      }
+      if (cmd === "update_project_name") {
+        expect(payloadField(payload, "displayName")).toBe("新项目名");
+        return renamedDetail;
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    expect(screen.queryByRole("button", { name: /修改显示名/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "修改项目显示名" }));
+    fireEvent.change(screen.getByLabelText("项目显示名"), { target: { value: "新项目名" } });
+    fireEvent.click(screen.getByRole("button", { name: "提交项目显示名" }));
+
+    await screen.findByText("项目显示名已更新。");
+    expect(screen.getByRole("heading", { name: "新项目名" })).toBeInTheDocument();
+  });
+
+  it("变化抽屉可通过蒙版关闭且不展示说明文案", async () => {
     const changedVersion = {
       ...version,
       changeSummary: {
@@ -282,13 +345,17 @@ describe("App", () => {
     render(<App />);
 
     await screen.findByText("当前已经是已保存的好版本。");
+    expect(screen.queryByRole("button", { name: /导出当前项目副本/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "修改项目显示名" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "查看变化" }));
 
     expect(screen.getByRole("heading", { name: "这次变化" })).toBeInTheDocument();
     expect(screen.getByText("README.md")).toBeInTheDocument();
     expect(screen.getByText("src/App.tsx")).toBeInTheDocument();
     expect(screen.getByText("old.txt")).toBeInTheDocument();
-    expect(screen.queryByText(/diff|patch|commit/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("不展示代码内容，只显示文件变化情况。")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "关闭变化抽屉" }));
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "这次变化" })).not.toBeInTheDocument());
   });
 
   it("回退需要确认，取消后不会调用回退接口", async () => {

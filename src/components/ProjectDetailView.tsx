@@ -1,27 +1,35 @@
-import { Bookmark, CheckCircle, Download, Folder, Pencil, X } from "lucide-react";
+import { Bookmark, Check, CheckCircle, Folder, MapPin, Pencil, Undo2, X } from "lucide-react";
 import { useMemo } from "react";
-import { formatBytes, formatDate, versionLabel } from "../formatters";
+import { formatBytes, formatDate, versionDisplayNote, versionLabel } from "../formatters";
 import type { ProjectDetail, Version } from "../types";
 
 export function ProjectDetailView({
   detail,
   loading,
+  editingName,
+  projectName,
   onOpenSave,
   onSelectVersion,
   onRollback,
   onOpenFolder,
-  onEditName,
-  onExport,
+  onStartEditName,
+  onProjectNameChange,
+  onCancelEditName,
+  onSubmitEditName,
   onRelink,
 }: {
   detail: ProjectDetail;
   loading: boolean;
+  editingName: boolean;
+  projectName: string;
   onOpenSave: () => void;
   onSelectVersion: (version: Version) => void;
   onRollback: (version: Version) => void;
   onOpenFolder: () => void;
-  onEditName: () => void;
-  onExport: () => void;
+  onStartEditName: () => void;
+  onProjectNameChange: (value: string) => void;
+  onCancelEditName: () => void;
+  onSubmitEditName: () => void;
   onRelink: () => void;
 }) {
   const currentVersionId = detail.project.currentVersionId;
@@ -32,15 +40,31 @@ export function ProjectDetailView({
     <>
       <header className="detail-header">
         <div>
-          <h2>{detail.project.displayName}</h2>
+          <div className="project-name-row">
+            {editingName ? (
+              <>
+                <input
+                  aria-label="项目显示名"
+                  className="project-name-input"
+                  value={projectName}
+                  onChange={(event) => onProjectNameChange(event.target.value)}
+                />
+                <button className="icon-button confirm" disabled={loading || !projectName.trim()} aria-label="提交项目显示名" onClick={onSubmitEditName}><Check size={18} /></button>
+                <button className="icon-button" disabled={loading} aria-label="取消修改项目显示名" onClick={onCancelEditName}><X size={18} /></button>
+              </>
+            ) : (
+              <>
+                <h2>{detail.project.displayName}</h2>
+                <button className="icon-button edit-name-button" disabled={loading} aria-label="修改项目显示名" onClick={onStartEditName}><Pencil size={18} /></button>
+              </>
+            )}
+          </div>
           <p><Folder size={18} /> {detail.project.path}</p>
           <p>项目占用：{formatBytes(detail.storageUsage.workTreeBytes)} · 版本数据：{formatBytes(detail.storageUsage.versionDataBytes)}</p>
         </div>
         <div className="header-actions">
           <button className="secondary-button" disabled={loading || !detail.pathExists} onClick={onOpenFolder}><Folder size={18} /> 打开项目文件夹</button>
-          <button className="secondary-button" disabled={loading} onClick={onEditName}><Pencil size={18} /> 修改显示名</button>
-          <button className="secondary-button" disabled={loading || !detail.pathExists} onClick={onExport}><Download size={18} /> 导出当前项目副本</button>
-          <button className="primary-button" disabled={loading || !detail.pathExists || !hasChanges} onClick={onOpenSave}>
+          <button className="primary-button save-version-button" disabled={loading || !detail.pathExists || !hasChanges} onClick={onOpenSave}>
             <Bookmark size={20} /> 保存当前好版本
           </button>
         </div>
@@ -73,16 +97,19 @@ export function ProjectDetailView({
       )}
 
       {hasVersions ? (
-        <div className="timeline">
-          {detail.versions.map((version) => (
-            <VersionCard
-              key={version.id}
-              version={version}
-              current={version.id === currentVersionId}
-              onShowChanges={() => onSelectVersion(version)}
-              onRollback={() => onRollback(version)}
-            />
-          ))}
+        <div className="timeline-scroll">
+          <div className="timeline">
+            {detail.versions.map((version, index) => (
+              <VersionCard
+                key={version.id}
+                version={version}
+                versionNumber={detail.versions.length - index}
+                current={version.id === currentVersionId}
+                onShowChanges={() => onSelectVersion(version)}
+                onRollback={() => onRollback(version)}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <section className="hero-empty compact">
@@ -96,19 +123,22 @@ export function ProjectDetailView({
 
 function VersionCard({
   version,
+  versionNumber,
   current,
   onShowChanges,
   onRollback,
 }: {
   version: Version;
+  versionNumber: number;
   current: boolean;
   onShowChanges: () => void;
   onRollback: () => void;
 }) {
-  const note = useMemo(() => version.note || version.title, [version]);
+  const note = useMemo(() => versionDisplayNote(version, versionNumber), [version, versionNumber]);
 
   return (
     <article className={`timeline-card ${current ? "current" : ""}`}>
+      {current && <span className="timeline-arrow" aria-hidden="true"><Undo2 size={18} /></span>}
       <span className={`timeline-dot ${current ? "current" : ""}`} />
       <div className="version-time">
         <strong>{formatDate(version.createdAt)}</strong>
@@ -117,7 +147,7 @@ function VersionCard({
       <div className="version-body">
         <div className="version-title">
           <strong>{note}</strong>
-          {current && <span>当前在这里</span>}
+          {current && <span><MapPin size={18} /> 当前在这里</span>}
         </div>
         <div className="chips">
           <span className="chip add">新增 {version.changeSummary.added}</span>
@@ -127,7 +157,7 @@ function VersionCard({
       </div>
       <div className="version-actions">
         <button className="secondary-button" onClick={onShowChanges}>查看变化</button>
-        <button className="secondary-button" disabled={current} onClick={onRollback}>回到这里</button>
+        <button className="primary-button" disabled={current} onClick={onRollback}>回到这里</button>
       </div>
     </article>
   );
@@ -137,18 +167,21 @@ export function ChangeSummaryDrawer({ version, onClose }: { version: Version; on
   return (
     <aside className="drawer">
       <div className="drawer-header">
-        <h3>这次变化</h3>
+        <div>
+          <h3>这次变化</h3>
+          <div className="chips full">
+            <span className="chip add">新增 {version.changeSummary.added}</span>
+            <span className="chip modify">修改 {version.changeSummary.modified}</span>
+            <span className="chip delete">删除 {version.changeSummary.deleted}</span>
+          </div>
+        </div>
         <button className="icon-button" onClick={onClose}><X size={20} /></button>
       </div>
-      <div className="chips full">
-        <span className="chip add">新增 {version.changeSummary.added}</span>
-        <span className="chip modify">修改 {version.changeSummary.modified}</span>
-        <span className="chip delete">删除 {version.changeSummary.deleted}</span>
+      <div className="drawer-file-list">
+        <FileChangeGroup title="新增" status="added" version={version} />
+        <FileChangeGroup title="修改" status="modified" version={version} />
+        <FileChangeGroup title="删除" status="deleted" version={version} />
       </div>
-      <FileChangeGroup title="新增" status="added" version={version} />
-      <FileChangeGroup title="修改" status="modified" version={version} />
-      <FileChangeGroup title="删除" status="deleted" version={version} />
-      <p className="drawer-note">不展示代码内容，只显示文件变化情况。</p>
     </aside>
   );
 }

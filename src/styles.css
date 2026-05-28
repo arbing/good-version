@@ -7,6 +7,7 @@ body,
 body {
   margin: 0;
   overflow: hidden;
+  scrollbar-gutter: stable;
   color: #20242a;
   background: linear-gradient(180deg, #f4f6f5 0%, #e9eceb 100%);
   font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
@@ -45,7 +46,6 @@ button:disabled {
   flex-direction: column;
   gap: 20px;
   overflow: hidden;
-  border-right: 1px solid #dfe3e6;
   padding: 34px 20px;
   background: linear-gradient(180deg, rgba(251, 252, 251, 0.98), rgba(244, 246, 245, 0.94));
 }
@@ -282,35 +282,26 @@ button:disabled {
 
 .content,
 .project-list,
-.drawer {
-  scrollbar-width: none;
-}
-
-.content:hover,
-.project-list:hover,
-.drawer:hover {
+.timeline-scroll,
+.drawer-file-list {
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
 }
 
 .content::-webkit-scrollbar,
 .project-list::-webkit-scrollbar,
-.drawer::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-
-.content:hover::-webkit-scrollbar,
-.project-list:hover::-webkit-scrollbar,
-.drawer:hover::-webkit-scrollbar {
+.timeline-scroll::-webkit-scrollbar,
+.drawer-file-list::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 .content::-webkit-scrollbar-thumb,
 .project-list::-webkit-scrollbar-thumb,
-.drawer::-webkit-scrollbar-thumb {
+.timeline-scroll::-webkit-scrollbar-thumb,
+.drawer-file-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(74, 86, 98, 0.28);
+  background: rgba(74, 86, 98, 0.22);
 }
 
 .local-note.hero {
@@ -388,8 +379,10 @@ button:disabled {
   box-sizing: border-box;
   height: 100vh;
   min-width: 0;
-  flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
   padding: 35px 44px;
   background: radial-gradient(circle at 62% 34%, rgba(47, 153, 83, 0.035), transparent 28%), #ffffff;
 }
@@ -421,9 +414,11 @@ button:disabled {
 
 .header-actions {
   display: flex;
+  flex-direction: column;
   flex-wrap: nowrap;
-  justify-content: flex-end;
-  gap: 8px;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .header-actions .secondary-button,
@@ -434,8 +429,40 @@ button:disabled {
   font-size: 15px;
 }
 
+.project-name-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.project-name-input {
+  width: min(520px, 100%);
+  min-height: 46px;
+  box-sizing: border-box;
+  border: 1px solid #cbd3d8;
+  border-radius: 9px;
+  padding: 0 14px;
+  color: #20242a;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.icon-button.confirm {
+  color: white;
+  border-color: #268446;
+  background: #2f9953;
+}
+
+.edit-name-button {
+  margin-top: 2px;
+}
+
 .detail-header h2 {
   font-size: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .detail-header p {
@@ -455,9 +482,16 @@ button:disabled {
   flex-shrink: 0;
 }
 
+.timeline-scroll {
+  min-height: 0;
+  flex: 1;
+  margin-top: 26px;
+  overflow: auto;
+}
+
 .timeline {
   position: relative;
-  margin-top: 26px;
+  margin-top: 0;
   margin-left: 12px;
   padding-left: 34px;
 }
@@ -466,7 +500,7 @@ button:disabled {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 9px;
+  left: 0;
   width: 2px;
   background: #cfd5da;
   content: "";
@@ -491,12 +525,14 @@ button:disabled {
 
 .timeline-dot {
   position: absolute;
-  left: -34px;
+  left: -42px;
+  top: 50%;
   width: 18px;
   height: 18px;
   border: 2px solid #b9c0c6;
   border-radius: 999px;
   background: #fff;
+  transform: translate(-50%, -50%);
 }
 
 .timeline-dot.current {
@@ -504,8 +540,23 @@ button:disabled {
   box-shadow: inset 0 0 0 4px #d9f0df;
 }
 
+.timeline-arrow {
+  position: absolute;
+  left: -82px;
+  top: 50%;
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #278d4d;
+  background: #e8f5eb;
+  transform: translateY(-50%);
+}
+
 .version-time {
-  width: 118px;
+  width: 156px;
   flex-shrink: 0;
   border-right: 1px solid #d2d7dc;
 }
@@ -531,7 +582,8 @@ button:disabled {
   gap: 12px;
 }
 
-.version-actions .secondary-button {
+.version-actions .secondary-button,
+.version-actions .primary-button {
   min-height: 50px;
   border-radius: 8px;
   padding: 0 20px;
@@ -551,6 +603,9 @@ button:disabled {
 }
 
 .version-title span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
   color: #278d4d;
   font-size: 14px;
@@ -938,17 +993,42 @@ button:disabled {
   top: 0;
   right: 0;
   bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
   width: 380px;
-  overflow: auto;
-  padding: 34px 22px;
+  border-radius: 14px 0 0 14px;
+  z-index: 20;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  border: 0;
+  background: rgba(22, 27, 32, 0.32);
 }
 
 .drawer-header {
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 18px;
+  flex-shrink: 0;
+  padding: 34px 22px 18px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(30, 36, 42, 0.08);
 }
 
 .drawer h3 {
   font-size: 26px;
+}
+
+.drawer-file-list {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 0 22px 28px;
 }
 
 .file-group {
@@ -982,10 +1062,5 @@ button:disabled {
 .file-row strong {
   flex-shrink: 0;
   color: #56606a;
-  font-size: 13px;
-}
-
-.drawer-note {
-  color: #8a929a;
   font-size: 13px;
 }
