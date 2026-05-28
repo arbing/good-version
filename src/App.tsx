@@ -262,11 +262,9 @@ function App() {
       <aside className="sidebar">
         <div className="brand">
           <span className="brand-icon"><ShieldCheck size={30} /></span>
-          <div>
-            <h1>好版本</h1>
-            <p>保存能用的状态，改坏了也能回来</p>
-          </div>
+          <h1>好版本</h1>
         </div>
+        <p className="brand-subtitle">保存能用的状态，改坏了也能回来</p>
 
         <button className="add-button" disabled={loading} onClick={addProject}>
           <PlusCircle size={22} /> 添加项目

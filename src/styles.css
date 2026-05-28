@@ -38,7 +38,7 @@ button:disabled {
 .sidebar {
   display: flex;
   box-sizing: border-box;
-  width: 340px;
+  width: 380px;
   height: 100vh;
   min-height: 0;
   flex-shrink: 0;
@@ -67,6 +67,7 @@ button:disabled {
 }
 
 .brand h1,
+.brand-subtitle,
 .detail-header h2,
 .modal h3,
 .hero-empty h2,
@@ -79,6 +80,13 @@ button:disabled {
 
 .brand h1 {
   font-size: 30px;
+}
+
+.brand-subtitle {
+  margin: -5px 0 0;
+  color: #5d6670;
+  font-size: 18px;
+  line-height: 1.4;
 }
 
 .brand p {
@@ -180,6 +188,15 @@ button:disabled {
   overflow: auto;
 }
 
+.project-list:has(.empty-state) {
+  overflow: hidden;
+}
+
+.project-list:has(.empty-state) .empty-state {
+  min-height: 0;
+  flex: 1;
+}
+
 .project-card {
   display: flex;
   width: 100%;
@@ -227,7 +244,7 @@ button:disabled {
   min-height: 88px;
   flex-shrink: 0;
   margin-top: 0;
-  gap: 12px;
+  gap: 18px;
   border: 1px solid #f8e7c9;
   border-radius: 9px;
   padding: 0 14px;
@@ -235,6 +252,39 @@ button:disabled {
   background: #fff7e9;
   text-align: left;
   box-shadow: 0 12px 24px rgba(178, 137, 72, 0.08);
+}
+
+.content,
+.project-list,
+.drawer {
+  scrollbar-width: none;
+}
+
+.content:hover,
+.project-list:hover,
+.drawer:hover {
+  scrollbar-width: thin;
+}
+
+.content::-webkit-scrollbar,
+.project-list::-webkit-scrollbar,
+.drawer::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.content:hover::-webkit-scrollbar,
+.project-list:hover::-webkit-scrollbar,
+.drawer:hover::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.content::-webkit-scrollbar-thumb,
+.project-list::-webkit-scrollbar-thumb,
+.drawer::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(74, 86, 98, 0.28);
 }
 
 .local-note.hero {
@@ -267,10 +317,12 @@ button:disabled {
 .local-note-copy {
   min-width: 0;
   flex: 1;
+  margin-right: 8px;
 }
 
 .local-note.hero .local-note-copy {
   flex: 0 0 auto;
+  margin-right: 0;
 }
 
 .local-note-copy strong,
@@ -564,6 +616,12 @@ button:disabled {
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72)), radial-gradient(circle at 50% 45%, rgba(47, 153, 83, 0.08), transparent 42%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.empty-state-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .empty-state svg {

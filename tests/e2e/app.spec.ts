@@ -23,8 +23,19 @@ test("空项目状态显示添加入口", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "还没有项目" })).toBeVisible();
   await expect(page.getByText("添加项目后会在这里显示")).toBeVisible();
   await expect(page.getByText("选择一个项目文件夹，先保存一个初始好版本。")).toBeVisible();
-  await expect(page.getByRole("button", { name: "添加项目" }).last()).toBeVisible();
   await expect(page.getByRole("button", { name: /所有数据都保存在本地设备中/ }).last()).toBeVisible();
+
+  const projectList = await page.evaluate(() => {
+    const element = document.querySelector(".project-list") as HTMLElement;
+
+    return {
+      scrollable: element.scrollHeight > element.clientHeight,
+      overflowY: window.getComputedStyle(element).overflowY,
+    };
+  });
+
+  expect(projectList.scrollable).toBe(false);
+  expect(projectList.overflowY).toBe("hidden");
 });
 
 test("空项目状态连续点击本地数据区块会打开数据目录", async ({ page }) => {

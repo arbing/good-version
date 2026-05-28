@@ -3,9 +3,11 @@ import { ChevronRight, Folder, ShieldCheck } from "lucide-react";
 export function EmptyState() {
   return (
     <div className="empty-state">
-      <Folder size={54} />
-      <strong>还没有项目</strong>
-      <small>添加项目后会在这里显示</small>
+      <div className="empty-state-content">
+        <Folder size={54} />
+        <strong>还没有项目</strong>
+        <small>添加项目后会在这里显示</small>
+      </div>
     </div>
   );
 }
