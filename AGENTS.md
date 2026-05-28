@@ -8,9 +8,9 @@
 
 ## 当前阶段
 
-当前已从产品定义进入 MVP 工程实现阶段。
+当前已从 MVP 工程实现进入测试补强和体验对齐阶段。
 
-已建立 Tauri + React + TypeScript + Rust 工程骨架，并完成本地项目版本管理主路径：添加项目、保存好版本、查看时间线、查看变化、回退、导出副本、目录丢失提示、重新关联目录、存储占用展示、打开项目文件夹、修改显示名。
+已建立 Tauri + React + TypeScript + Rust 工程骨架，并完成本地项目版本管理主路径：添加项目、保存好版本、查看时间线、查看变化、回退、导出副本、目录丢失提示、重新关联目录、存储占用展示、打开项目文件夹、修改显示名。当前已补充前端单元测试、Rust 单元测试和 Playwright E2E 测试，并继续对齐 `prototypes/` 高保真原型。
 
 主要资料分为三类：
 
@@ -34,9 +34,10 @@
 应用工程文件：
 
 - `package.json`：pnpm 脚本和前端依赖
-- `src/`：React + TypeScript 前端应用
-- `src-tauri/`：Tauri Rust 后端、Git 与文件系统能力
-- `vite.config.ts` / `tsconfig.json`：前端构建与类型配置
+- `src/`：React + TypeScript 前端应用与 Vitest 测试
+- `tests/e2e/`：Playwright E2E 测试
+- `src-tauri/`：Tauri Rust 后端、Git 与文件系统能力及 Rust 单元测试
+- `vite.config.ts` / `tsconfig.json` / `vitest.config.ts` / `playwright.config.ts`：构建、类型和测试配置
 
 ## 产品原则
 
@@ -65,13 +66,19 @@
 - 涉及回退逻辑时，优先保证可恢复和可验证
 - 完成 `docs/development-tasks.md` 中的任务后，及时更新对应进度
 - 优先使用 `pnpm` 运行前端脚本
+- 补充功能时同步考虑 Vitest、Rust 单元测试和 Playwright E2E 覆盖
+- 前端体验调整优先对照 `prototypes/*.html` 和高保真 PNG
 
 ## 常用命令
 
 ```bash
 pnpm install
 pnpm build
+pnpm test
+pnpm test:types
+pnpm test:e2e
 pnpm exec tauri dev
+cargo test --manifest-path src-tauri/Cargo.toml
 cargo check --manifest-path src-tauri/Cargo.toml
 cargo fmt --manifest-path src-tauri/Cargo.toml
 ```

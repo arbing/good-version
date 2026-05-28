@@ -17,6 +17,8 @@
 - 支持 macOS + Windows
 - Tauri + React + TypeScript + Rust
 - pnpm + Vite 前端工程
+- Vitest + Playwright 前端测试
+- Rust 单元测试
 - 应用内置 Git 操作层
 - 中文界面
 - 本地优先
@@ -33,14 +35,21 @@ MVP 主路径已完成第一版工程实现：
 - 导出不包含版本历史的项目副本
 - 展示项目和版本数据占用
 - 处理项目目录丢失，并支持重新选择目录
+- 根据未保存变化控制保存入口状态，并准实时刷新
 - 打开项目文件夹、修改项目显示名
+- 补充前端单元测试、后端单元测试和 E2E 测试
+- 持续对齐高保真原型视觉与交互
 
 ## 开发
 
 ```bash
 pnpm install
 pnpm build
+pnpm test
+pnpm test:types
+pnpm test:e2e
 pnpm exec tauri dev
+cargo test --manifest-path src-tauri/Cargo.toml
 cargo check --manifest-path src-tauri/Cargo.toml
 cargo fmt --manifest-path src-tauri/Cargo.toml
 ```
