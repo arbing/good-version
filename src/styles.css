@@ -50,6 +50,32 @@ button:disabled {
   background: linear-gradient(180deg, rgba(251, 252, 251, 0.98), rgba(244, 246, 245, 0.94));
 }
 
+.sidebar-resizer {
+  position: relative;
+  width: 10px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: #fbfcfb;
+  touch-action: none;
+}
+
+.sidebar-resizer::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: #dfe3e6;
+  content: "";
+  transition: background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.sidebar-resizer:hover::before,
+.sidebar-resizer:active::before {
+  background: #2f9953;
+  box-shadow: 0 0 0 3px rgba(47, 153, 83, 0.12);
+}
+
 .brand,
 .detail-header,
 .timeline-card,

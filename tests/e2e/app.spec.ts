@@ -129,6 +129,7 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
     const brand = document.querySelector(".brand") as HTMLElement;
     const addButton = document.querySelector(".add-button") as HTMLElement;
     const localNote = document.querySelector(".sidebar > .local-note") as HTMLElement;
+    const sidebar = document.querySelector(".sidebar") as HTMLElement;
 
     return {
       bodyScrollable: document.documentElement.scrollHeight > window.innerHeight || document.body.scrollHeight > window.innerHeight,
@@ -137,6 +138,8 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
       brandVisible: brand.getBoundingClientRect().top >= 0,
       addButtonVisible: addButton.getBoundingClientRect().top >= 0,
       localNoteVisible: localNote.getBoundingClientRect().bottom <= window.innerHeight,
+      sidebarWidth: sidebar.getBoundingClientRect().width,
+      contentLeft: content.getBoundingClientRect().left,
     };
   });
 
@@ -146,6 +149,42 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.brandVisible).toBe(true);
   expect(layout.addButtonVisible).toBe(true);
   expect(layout.localNoteVisible).toBe(true);
+  expect(layout.sidebarWidth).toBe(380);
+
+  await page.setViewportSize({ width: 1280, height: 620 });
+  const shortListHeight = await page.evaluate(() => (document.querySelector(".project-list") as HTMLElement).clientHeight);
+
+  await page.setViewportSize({ width: 1280, height: 860 });
+  const tallListHeight = await page.evaluate(() => (document.querySelector(".project-list") as HTMLElement).clientHeight);
+
+  expect(tallListHeight).toBeGreaterThan(shortListHeight);
+
+  const resizer = page.getByRole("separator", { name: "调整左侧栏宽度" });
+  await resizer.hover();
+  await page.mouse.down();
+  await page.mouse.move(460, 300);
+  await page.mouse.up();
+
+  const expandedLayout = await page.evaluate(() => {
+    const sidebar = document.querySelector(".sidebar") as HTMLElement;
+    const content = document.querySelector(".content") as HTMLElement;
+
+    return {
+      sidebarWidth: sidebar.getBoundingClientRect().width,
+      contentLeft: content.getBoundingClientRect().left,
+    };
+  });
+
+  expect(expandedLayout.sidebarWidth).toBeGreaterThan(layout.sidebarWidth);
+  expect(expandedLayout.contentLeft).toBeGreaterThan(layout.contentLeft);
+
+  await resizer.hover();
+  await page.mouse.down();
+  await page.mouse.move(120, 300);
+  await page.mouse.up();
+
+  const minSidebarWidth = await page.evaluate(() => (document.querySelector(".sidebar") as HTMLElement).getBoundingClientRect().width);
+  expect(minSidebarWidth).toBeGreaterThanOrEqual(300);
 });
 test("有未保存变化时保存入口亮起并展示提示", async ({ page }) => {
   await page.addInitScript(() => {

@@ -6,6 +6,10 @@ import { EmptyState, FolderIllustration, LocalDataNote } from "./components/Empt
 import { ChangeSummaryDrawer, ProjectDetailView } from "./components/ProjectDetailView";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 
+const DEFAULT_SIDEBAR_WIDTH = 380;
+const MIN_SIDEBAR_WIDTH = 300;
+const MIN_CONTENT_WIDTH = 520;
+
 function App() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
@@ -20,6 +24,7 @@ function App() {
   const [rollbackVersion, setRollbackVersion] = useState<Version>();
   const [message, setMessage] = useState<string>();
   const [loading, setLoading] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const dataDirClickCount = useRef(0);
   const dataDirClickTimer = useRef<number | undefined>(undefined);
 
@@ -233,6 +238,24 @@ function App() {
     }, 1200);
   }
 
+  function resizeSidebar(clientX: number) {
+    setSidebarWidth(Math.min(Math.max(clientX, MIN_SIDEBAR_WIDTH), window.innerWidth - MIN_CONTENT_WIDTH));
+  }
+
+  function startSidebarResize(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    resizeSidebar(event.clientX);
+
+    const handlePointerMove = (moveEvent: PointerEvent) => resizeSidebar(moveEvent.clientX);
+    const stopResize = () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", stopResize);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", stopResize);
+  }
+
   async function exportProjectCopy() {
     if (!detail) {
       return;
@@ -259,7 +282,7 @@ function App() {
 
   return (
     <main className="app-shell">
-      <aside className="sidebar">
+      <aside className="sidebar" style={{ width: sidebarWidth }}>
         <div className="brand">
           <span className="brand-icon"><ShieldCheck size={30} /></span>
           <h1>好版本</h1>
@@ -296,6 +319,14 @@ function App() {
 
         {status && <LocalDataNote onClick={handleDataDirClick} />}
       </aside>
+
+      <div
+        aria-label="调整左侧栏宽度"
+        aria-orientation="vertical"
+        className="sidebar-resizer"
+        role="separator"
+        onPointerDown={startSidebarResize}
+      />
 
       <section className="content">
         {message && <div className="message">{message}</div>}
