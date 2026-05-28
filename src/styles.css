@@ -6,6 +6,7 @@ body,
 
 body {
   margin: 0;
+  overflow: hidden;
   color: #20242a;
   background: linear-gradient(180deg, #f4f6f5 0%, #e9eceb 100%);
   font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
@@ -28,16 +29,22 @@ button:disabled {
 
 .app-shell {
   display: flex;
-  min-height: 100%;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
   background: #fbfcfb;
 }
 
 .sidebar {
   display: flex;
+  box-sizing: border-box;
   width: 340px;
+  height: 100vh;
+  min-height: 0;
   flex-shrink: 0;
   flex-direction: column;
   gap: 20px;
+  overflow: hidden;
   border-right: 1px solid #dfe3e6;
   padding: 34px 20px;
   background: linear-gradient(180deg, rgba(251, 252, 251, 0.98), rgba(244, 246, 245, 0.94));
@@ -149,7 +156,12 @@ button:disabled {
 }
 
 .project-section {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
   margin-top: 24px;
+  overflow: hidden;
 }
 
 .project-section h2 {
@@ -161,9 +173,10 @@ button:disabled {
 
 .project-list {
   display: flex;
+  min-height: 0;
+  flex: 1;
   flex-direction: column;
   gap: 12px;
-  min-height: 0;
   overflow: auto;
 }
 
@@ -212,7 +225,8 @@ button:disabled {
 .local-note {
   width: 100%;
   min-height: 88px;
-  margin-top: auto;
+  flex-shrink: 0;
+  margin-top: 0;
   gap: 12px;
   border: 1px solid #f8e7c9;
   border-radius: 9px;
@@ -293,7 +307,11 @@ button:disabled {
 
 .content {
   position: relative;
+  box-sizing: border-box;
+  height: 100vh;
+  min-width: 0;
   flex: 1;
+  overflow: auto;
   padding: 35px 44px;
   background: radial-gradient(circle at 62% 34%, rgba(47, 153, 83, 0.035), transparent 28%), #ffffff;
 }

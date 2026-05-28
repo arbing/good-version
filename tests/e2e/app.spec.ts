@@ -58,6 +58,84 @@ test("空项目状态连续点击本地数据区块会打开数据目录", async
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("open-data-dir-called"))).toBe("yes");
 });
 
+test("长列表时左右滚动区域相互独立", async ({ page }) => {
+  await page.addInitScript(() => {
+    const versions = Array.from({ length: 24 }, (_, index) => ({
+      id: `version-${index + 1}`,
+      projectId: "project-1",
+      title: `保存的好版本 ${index + 1}`,
+      commitHash: `hash-${index + 1}`,
+      tagName: `good-version/version-${index + 1}`,
+      createdAt: "2026-05-27 10:00:00",
+      isInitial: index === 23,
+      isRollbackCheckpoint: false,
+      changeSummary: { added: 0, modified: 0, deleted: 0, files: [] },
+    }));
+    const projects = Array.from({ length: 28 }, (_, index) => ({
+      id: `project-${index + 1}`,
+      displayName: `项目 ${index + 1}`,
+      path: `/tmp/project-${index + 1}`,
+      gitDirPath: `/tmp/data/repositories/project-${index + 1}`,
+      usesExternalGitDir: true,
+      createdAt: "2026-05-27 10:00:00",
+      updatedAt: "2026-05-27 10:00:00",
+      currentVersionId: "version-1",
+      versionCount: versions.length,
+      latestVersionAt: versions[0].createdAt,
+    }));
+
+    window.__TAURI_INTERNALS__ = {
+      invoke: async (cmd: string) => {
+        if (cmd === "get_app_status") {
+          return { dataDir: "/tmp/good-version" };
+        }
+        if (cmd === "list_projects") {
+          return projects;
+        }
+        if (cmd === "get_project_detail") {
+          return {
+            project: projects[0],
+            versions,
+            pathExists: true,
+            storageUsage: { workTreeBytes: 1024, versionDataBytes: 2048 },
+            currentChangeSummary: { added: 0, modified: 0, deleted: 0, files: [] },
+          };
+        }
+        return null;
+      },
+      transformCallback: () => 1,
+      unregisterCallback: () => undefined,
+      convertFileSrc: (filePath: string) => filePath,
+    };
+  });
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "项目 1" })).toBeVisible();
+
+  const layout = await page.evaluate(() => {
+    const projectList = document.querySelector(".project-list") as HTMLElement;
+    const content = document.querySelector(".content") as HTMLElement;
+    const brand = document.querySelector(".brand") as HTMLElement;
+    const addButton = document.querySelector(".add-button") as HTMLElement;
+    const localNote = document.querySelector(".sidebar > .local-note") as HTMLElement;
+
+    return {
+      bodyScrollable: document.documentElement.scrollHeight > window.innerHeight || document.body.scrollHeight > window.innerHeight,
+      projectListScrollable: projectList.scrollHeight > projectList.clientHeight,
+      contentScrollable: content.scrollHeight > content.clientHeight,
+      brandVisible: brand.getBoundingClientRect().top >= 0,
+      addButtonVisible: addButton.getBoundingClientRect().top >= 0,
+      localNoteVisible: localNote.getBoundingClientRect().bottom <= window.innerHeight,
+    };
+  });
+
+  expect(layout.bodyScrollable).toBe(false);
+  expect(layout.projectListScrollable).toBe(true);
+  expect(layout.contentScrollable).toBe(true);
+  expect(layout.brandVisible).toBe(true);
+  expect(layout.addButtonVisible).toBe(true);
+  expect(layout.localNoteVisible).toBe(true);
+});
 test("有未保存变化时保存入口亮起并展示提示", async ({ page }) => {
   await page.addInitScript(() => {
     const project = {
