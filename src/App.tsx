@@ -52,6 +52,18 @@ function App() {
     return () => window.clearInterval(timer);
   }, [selectedProjectId, detail?.pathExists]);
 
+  useEffect(() => {
+    const handleWindowResize = () => {
+      setSidebarWidth((currentWidth) => {
+        const nextWidth = nextSidebarWidth(currentWidth);
+        return currentWidth === nextWidth ? currentWidth : nextWidth;
+      });
+    };
+
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, []);
+
   async function bootstrap() {
     setLoading(true);
     try {
@@ -238,8 +250,16 @@ function App() {
     }, 1200);
   }
 
+  function nextSidebarWidth(clientX: number) {
+    const maxSidebarWidth = Math.max(MIN_SIDEBAR_WIDTH, window.innerWidth - MIN_CONTENT_WIDTH);
+    return Math.min(Math.max(clientX, MIN_SIDEBAR_WIDTH), maxSidebarWidth);
+  }
+
   function resizeSidebar(clientX: number) {
-    setSidebarWidth(Math.min(Math.max(clientX, MIN_SIDEBAR_WIDTH), window.innerWidth - MIN_CONTENT_WIDTH));
+    setSidebarWidth((currentWidth) => {
+      const nextWidth = nextSidebarWidth(clientX);
+      return currentWidth === nextWidth ? currentWidth : nextWidth;
+    });
   }
 
   function startSidebarResize(event: React.PointerEvent<HTMLDivElement>) {
@@ -250,10 +270,14 @@ function App() {
     const stopResize = () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", stopResize);
+      window.removeEventListener("pointercancel", stopResize);
+      window.removeEventListener("blur", stopResize);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", stopResize);
+    window.addEventListener("pointerup", stopResize, { once: true });
+    window.addEventListener("pointercancel", stopResize, { once: true });
+    window.addEventListener("blur", stopResize, { once: true });
   }
 
   async function exportProjectCopy() {
