@@ -284,41 +284,26 @@ button:disabled {
   box-shadow: 0 12px 24px rgba(178, 137, 72, 0.08);
 }
 
-.content,
-.project-list,
-.timeline-scroll,
-.drawer-file-list {
-  scrollbar-width: none;
-}
-
-.content:hover,
-.project-list:hover,
-.timeline-scroll:hover,
-.drawer-file-list:hover {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(74, 86, 98, 0.24) transparent;
-}
-
 .content::-webkit-scrollbar,
 .project-list::-webkit-scrollbar,
 .timeline-scroll::-webkit-scrollbar,
 .drawer-file-list::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-
-.content:hover::-webkit-scrollbar,
-.project-list:hover::-webkit-scrollbar,
-.timeline-scroll:hover::-webkit-scrollbar,
-.drawer-file-list:hover::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-.content:hover::-webkit-scrollbar-track,
-.project-list:hover::-webkit-scrollbar-track,
-.timeline-scroll:hover::-webkit-scrollbar-track,
-.drawer-file-list:hover::-webkit-scrollbar-track {
+.content::-webkit-scrollbar-track,
+.project-list::-webkit-scrollbar-track,
+.timeline-scroll::-webkit-scrollbar-track,
+.drawer-file-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb,
+.project-list::-webkit-scrollbar-thumb,
+.timeline-scroll::-webkit-scrollbar-thumb,
+.drawer-file-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
   background: transparent;
 }
 
@@ -326,7 +311,6 @@ button:disabled {
 .project-list:hover::-webkit-scrollbar-thumb,
 .timeline-scroll:hover::-webkit-scrollbar-thumb,
 .drawer-file-list:hover::-webkit-scrollbar-thumb {
-  border-radius: 999px;
   background: rgba(74, 86, 98, 0.24);
 }
 
