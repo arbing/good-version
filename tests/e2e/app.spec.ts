@@ -158,7 +158,7 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.brandVisible).toBe(true);
   expect(layout.addButtonVisible).toBe(true);
   expect(layout.localNoteVisible).toBe(true);
-  expect(layout.sidebarWidth).toBe(380);
+  expect(layout.sidebarWidth).toBe(420);
 
   await page.setViewportSize({ width: 1280, height: 620 });
   const shortListHeight = await page.evaluate(() => (document.querySelector(".project-list") as HTMLElement).clientHeight);

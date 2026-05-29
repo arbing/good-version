@@ -7,7 +7,6 @@ body,
 body {
   margin: 0;
   overflow: hidden;
-  scrollbar-gutter: stable;
   color: #20242a;
   background: linear-gradient(180deg, #f4f6f5 0%, #e9eceb 100%);
   font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
@@ -39,14 +38,14 @@ button:disabled {
 .sidebar {
   display: flex;
   box-sizing: border-box;
-  width: 380px;
+  width: 420px;
   height: 100vh;
   min-height: 0;
   flex-shrink: 0;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
   overflow: hidden;
-  padding: 34px 20px;
+  padding: 34px 22px 34px 18px;
   background: linear-gradient(180deg, rgba(251, 252, 251, 0.98), rgba(244, 246, 245, 0.94));
 }
 
@@ -194,7 +193,7 @@ button:disabled {
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  margin-top: 24px;
+  margin-top: 10px;
   overflow: hidden;
 }
 
@@ -284,7 +283,13 @@ button:disabled {
 .project-list,
 .timeline-scroll,
 .drawer-file-list {
-  scrollbar-gutter: stable;
+  scrollbar-width: none;
+}
+
+.content:hover,
+.project-list:hover,
+.timeline-scroll:hover,
+.drawer-file-list:hover {
   scrollbar-width: thin;
 }
 
@@ -296,12 +301,26 @@ button:disabled {
   height: 8px;
 }
 
+.content::-webkit-scrollbar-track,
+.project-list::-webkit-scrollbar-track,
+.timeline-scroll::-webkit-scrollbar-track,
+.drawer-file-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .content::-webkit-scrollbar-thumb,
 .project-list::-webkit-scrollbar-thumb,
 .timeline-scroll::-webkit-scrollbar-thumb,
 .drawer-file-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(74, 86, 98, 0.22);
+  background: transparent;
+}
+
+.content:hover::-webkit-scrollbar-thumb,
+.project-list:hover::-webkit-scrollbar-thumb,
+.timeline-scroll:hover::-webkit-scrollbar-thumb,
+.drawer-file-list:hover::-webkit-scrollbar-thumb {
+  background: rgba(74, 86, 98, 0.24);
 }
 
 .local-note.hero {
@@ -492,8 +511,8 @@ button:disabled {
 .timeline {
   position: relative;
   margin-top: 0;
-  margin-left: 12px;
-  padding-left: 34px;
+  margin-left: 46px;
+  padding-left: 24px;
 }
 
 .timeline::before {
@@ -504,6 +523,7 @@ button:disabled {
   width: 2px;
   background: #cfd5da;
   content: "";
+  transform: translateX(-50%);
 }
 
 .timeline-card {
@@ -525,7 +545,7 @@ button:disabled {
 
 .timeline-dot {
   position: absolute;
-  left: -42px;
+  left: -24px;
   top: 50%;
   width: 18px;
   height: 18px;
@@ -542,7 +562,7 @@ button:disabled {
 
 .timeline-arrow {
   position: absolute;
-  left: -82px;
+  left: -70px;
   top: 50%;
   display: inline-flex;
   width: 30px;
@@ -580,6 +600,7 @@ button:disabled {
   display: flex;
   flex-shrink: 0;
   gap: 12px;
+  margin-left: auto;
 }
 
 .version-actions .secondary-button,
@@ -617,16 +638,23 @@ button:disabled {
   margin-top: 14px;
 }
 
+.chips.full {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
 .chips.full .chip {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   text-align: center;
 }
 
 .chip {
   flex-shrink: 0;
   border-radius: 7px;
-  padding: 6px 12px;
+  padding: 6px 10px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .chip.add {
@@ -997,7 +1025,7 @@ button:disabled {
   flex-direction: column;
   overflow: hidden;
   padding: 0;
-  width: 380px;
+  width: 420px;
   border-radius: 14px 0 0 14px;
   z-index: 20;
 }

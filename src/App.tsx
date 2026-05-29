@@ -7,9 +7,9 @@ import { ChangeSummaryDrawer, ProjectDetailView } from "./components/ProjectDeta
 import { numberedVersionNote } from "./formatters";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 
-const DEFAULT_SIDEBAR_WIDTH = 380;
+const DEFAULT_SIDEBAR_WIDTH = 420;
 const MIN_SIDEBAR_WIDTH = 300;
-const MIN_CONTENT_WIDTH = 520;
+const MIN_CONTENT_WIDTH = 720;
 
 function App() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
