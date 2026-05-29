@@ -160,8 +160,8 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.projectListScrollable).toBe(true);
   expect(layout.contentScrollable).toBe(false);
   expect(layout.timelineScrollable).toBe(true);
-  expect(layout.projectListOverflowY).toBe("overlay");
-  expect(layout.timelineScrollOverflowY).toBe("overlay");
+  expect(layout.projectListOverflowY).toBe("auto");
+  expect(layout.timelineScrollOverflowY).toBe("auto");
   expect(layout.resizerLineCount).toBe("1px");
   expect(layout.sidebarBorderRight).toBe("0px");
   expect(layout.brandVisible).toBe(true);
