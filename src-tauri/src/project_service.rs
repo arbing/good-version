@@ -489,10 +489,19 @@ mod tests {
             .rollback_to_version(&initial_detail.project.id, &initial_version_id)
             .unwrap();
 
-        assert_eq!(fs::read_to_string(work_tree.path().join("README.md")).unwrap(), "initial");
+        assert_eq!(
+            fs::read_to_string(work_tree.path().join("README.md")).unwrap(),
+            "initial"
+        );
         assert_eq!(detail.versions.len(), 3);
-        assert!(detail.versions.iter().any(|version| version.is_rollback_checkpoint));
-        assert_eq!(detail.project.current_version_id.as_deref(), Some(initial_version_id.as_str()));
+        assert!(detail
+            .versions
+            .iter()
+            .any(|version| version.is_rollback_checkpoint));
+        assert_eq!(
+            detail.project.current_version_id.as_deref(),
+            Some(initial_version_id.as_str())
+        );
     }
 
     #[test]
@@ -506,8 +515,14 @@ mod tests {
 
         copy_project_files(source.path(), target.path()).unwrap();
 
-        assert_eq!(fs::read_to_string(target.path().join("README.md")).unwrap(), "hello");
-        assert_eq!(fs::read_to_string(target.path().join(".env")).unwrap(), "SECRET=local");
+        assert_eq!(
+            fs::read_to_string(target.path().join("README.md")).unwrap(),
+            "hello"
+        );
+        assert_eq!(
+            fs::read_to_string(target.path().join(".env")).unwrap(),
+            "SECRET=local"
+        );
         assert!(!target.path().join(".git").exists());
     }
 }

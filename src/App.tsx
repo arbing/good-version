@@ -120,25 +120,22 @@ function App() {
     setLoading(true);
     setMessage(undefined);
     try {
-      const knownPaths = new Set(projects.map((project) => normalizePath(project.path)));
+      const projectIdByPath = new Map(projects.map((project) => [normalizePath(project.path), project.id]));
       let lastProjectId: string | undefined;
       let lastProjectDetail: ProjectDetail | undefined;
       let addedCount = 0;
 
       for (const path of paths) {
         const normalizedPath = normalizePath(path);
-        const existingProject = projects.find((project) => normalizePath(project.path) === normalizedPath);
-        if (existingProject) {
-          lastProjectId = existingProject.id;
-          continue;
-        }
-        if (knownPaths.has(normalizedPath)) {
+        const existingProjectId = projectIdByPath.get(normalizedPath);
+        if (existingProjectId) {
+          lastProjectId = existingProjectId;
           continue;
         }
 
         lastProjectDetail = await invoke<ProjectDetail>("add_project", { path });
         lastProjectId = lastProjectDetail.project.id;
-        knownPaths.add(normalizedPath);
+        projectIdByPath.set(normalizedPath, lastProjectId);
         addedCount += 1;
       }
 
@@ -159,10 +156,6 @@ function App() {
     }
   }, [projects, selectProject]);
 
-  const addProjectPath = useCallback(async (path: string) => {
-    await addProjectPaths([path]);
-  }, [addProjectPaths]);
-
   const startFolderDrag = useCallback(() => setDraggingFolder(true), []);
   const stopFolderDrag = useCallback(() => setDraggingFolder(false), []);
 
@@ -178,16 +171,13 @@ function App() {
     setMessage(undefined);
     let selected: string | null | string[];
     try {
-      selected = await open({ directory: true, multiple: false });
+      selected = await open({ directory: true, multiple: true, title: "选择项目文件夹" });
     } catch (error) {
       setMessage(toMessage(error));
       return;
     }
-    if (typeof selected !== "string") {
-      return;
-    }
-
-    await addProjectPath(selected);
+    const selectedPaths = Array.isArray(selected) ? selected : selected ? [selected] : [];
+    await addProjectPaths(selectedPaths);
   }
 
   async function saveCurrentVersion() {

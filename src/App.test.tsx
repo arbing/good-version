@@ -1,9 +1,16 @@
+import { open } from "@tauri-apps/plugin-dialog";
 import { emit } from "@tauri-apps/api/event";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { clearMocks, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import type { AppStatus, ProjectDetail, ProjectListItem } from "./types";
+
+vi.mock("@tauri-apps/plugin-dialog", () => ({
+  open: vi.fn(),
+}));
+
+const mockedOpen = vi.mocked(open);
 
 const baseProject = {
   id: "project-1",
@@ -105,6 +112,33 @@ function projectIdFromPayload(payload: unknown) {
   return payloadField(payload, "projectId")?.toString();
 }
 
+function multiProjectDetails(prefix: string): Record<string, ProjectDetail> {
+  return {
+    [`/tmp/${prefix}-a`]: {
+      ...projectDetail(false, "project-2"),
+      project: { ...secondProject, path: `/tmp/${prefix}-a` },
+    },
+    [`/tmp/${prefix}-b`]: {
+      ...projectDetail(false, "project-2"),
+      project: { ...secondProject, id: "project-3", displayName: "第三个项目", path: `/tmp/${prefix}-b` },
+    },
+  };
+}
+
+function multiProjectList(paths: string[]): ProjectListItem[] {
+  return [
+    projectList()[0],
+    ...paths.map((path, index) => ({
+      ...secondProject,
+      id: `project-${index + 2}`,
+      displayName: index === 0 ? "第二个项目" : "第三个项目",
+      path,
+      versionCount: 1,
+      latestVersionAt: secondVersion.createdAt,
+    })),
+  ];
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -112,6 +146,7 @@ describe("App", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    mockedOpen.mockReset();
     clearMocks();
   });
 
@@ -301,6 +336,74 @@ describe("App", () => {
     await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
   });
 
+  it("添加项目按钮支持一次选择多个文件夹", async () => {
+    const selectedDetails = multiProjectDetails("selected");
+    const addProjectPaths: string[] = [];
+    mockedOpen.mockResolvedValue(["/tmp/selected-a", "/tmp/selected-b"]);
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return multiProjectList(addProjectPaths);
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = projectIdFromPayload(payload);
+        if (projectId === "project-3") {
+          return selectedDetails["/tmp/selected-b"];
+        }
+        if (projectId === "project-2") {
+          return selectedDetails["/tmp/selected-a"];
+        }
+        return projectDetail(false);
+      }
+      if (cmd === "add_project") {
+        const path = payloadField(payload, "path")?.toString() ?? "";
+        addProjectPaths.push(path);
+        return selectedDetails[path];
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    fireEvent.click(screen.getByRole("button", { name: /添加项目/ }));
+
+    await screen.findByText("已添加项目，并保存了初始好版本。");
+    expect(mockedOpen).toHaveBeenCalledWith({ directory: true, multiple: true, title: "选择项目文件夹" });
+    expect(addProjectPaths).toEqual(["/tmp/selected-a", "/tmp/selected-b"]);
+    expect(screen.getByRole("heading", { name: "第三个项目" })).toBeInTheDocument();
+  });
+
+  it("添加项目按钮选择已存在项目时直接切换过去", async () => {
+    let addProjectCalled = false;
+    mockedOpen.mockResolvedValue(["/tmp/project-2"]);
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = projectIdFromPayload(payload) === "project-2" ? "project-2" : "project-1";
+        return projectDetail(false, projectId);
+      }
+      if (cmd === "add_project") {
+        addProjectCalled = true;
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    fireEvent.click(screen.getByRole("button", { name: /添加项目/ }));
+
+    await screen.findByText("这个项目已经在列表中，已为你切换过去。");
+    expect(addProjectCalled).toBe(false);
+    expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
+  });
+
   it("拖拽新文件夹后创建项目并切换过去", async () => {
     const draggedProject = {
       ...projectDetail(false, "project-2"),
@@ -375,16 +478,7 @@ describe("App", () => {
   });
 
   it("拖拽多个新文件夹后逐个创建项目并切到最后一个", async () => {
-    const draggedDetails: Record<string, ProjectDetail> = {
-      "/tmp/dragged-a": {
-        ...projectDetail(false, "project-2"),
-        project: { ...secondProject, path: "/tmp/dragged-a" },
-      },
-      "/tmp/dragged-b": {
-        ...projectDetail(false, "project-2"),
-        project: { ...secondProject, id: "project-3", displayName: "第三个项目", path: "/tmp/dragged-b" },
-      },
-    };
+    const draggedDetails = multiProjectDetails("dragged");
     const addProjectPaths: string[] = [];
     mockWindows("main");
     mockIPC((cmd, payload) => {
@@ -392,17 +486,7 @@ describe("App", () => {
         return appStatus();
       }
       if (cmd === "list_projects") {
-        return [
-          projectList()[0],
-          ...addProjectPaths.map((path, index) => ({
-            ...secondProject,
-            id: `project-${index + 2}`,
-            displayName: index === 0 ? "第二个项目" : "第三个项目",
-            path,
-            versionCount: 1,
-            latestVersionAt: secondVersion.createdAt,
-          })),
-        ];
+        return multiProjectList(addProjectPaths);
       }
       if (cmd === "get_project_detail") {
         const projectId = projectIdFromPayload(payload);

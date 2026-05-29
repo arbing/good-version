@@ -167,12 +167,17 @@ mod tests {
         let git_dir = tempdir().unwrap();
         fs::write(work_tree.path().join("README.md"), "hello").unwrap();
 
-        let repository = GitService::ensure_repository(work_tree.path(), Some(git_dir.path())).unwrap();
+        let repository =
+            GitService::ensure_repository(work_tree.path(), Some(git_dir.path())).unwrap();
         assert!(!work_tree.path().join(".git").exists());
 
-        let initial = GitService::create_version(&repository, "初始好版本", "good-version/initial", true)
-            .unwrap();
-        assert_eq!(GitService::change_summary(&repository).unwrap().files.len(), 0);
+        let initial =
+            GitService::create_version(&repository, "初始好版本", "good-version/initial", true)
+                .unwrap();
+        assert_eq!(
+            GitService::change_summary(&repository).unwrap().files.len(),
+            0
+        );
 
         fs::write(work_tree.path().join("README.md"), "hello updated").unwrap();
         fs::write(work_tree.path().join("new.txt"), "new").unwrap();
@@ -189,7 +194,10 @@ mod tests {
 
         GitService::reset_to_version(&repository, "good-version/initial").unwrap();
         assert_eq!(repository.head().unwrap().target(), Some(initial));
-        assert_eq!(fs::read_to_string(work_tree.path().join("README.md")).unwrap(), "hello");
+        assert_eq!(
+            fs::read_to_string(work_tree.path().join("README.md")).unwrap(),
+            "hello"
+        );
         assert!(!work_tree.path().join("new.txt").exists());
     }
 
@@ -197,12 +205,14 @@ mod tests {
     fn create_version_rejects_empty_non_initial_save() {
         let work_tree = tempdir().unwrap();
         let git_dir = tempdir().unwrap();
-        let repository = GitService::ensure_repository(work_tree.path(), Some(git_dir.path())).unwrap();
+        let repository =
+            GitService::ensure_repository(work_tree.path(), Some(git_dir.path())).unwrap();
 
         GitService::create_version(&repository, "初始好版本", "good-version/initial", true)
             .unwrap();
-        let error = GitService::create_version(&repository, "保存的好版本", "good-version/empty", false)
-            .unwrap_err();
+        let error =
+            GitService::create_version(&repository, "保存的好版本", "good-version/empty", false)
+                .unwrap_err();
 
         assert_eq!(error, "当前没有需要保存的变化。");
     }
