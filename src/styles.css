@@ -284,6 +284,20 @@ button:disabled {
   box-shadow: 0 12px 24px rgba(178, 137, 72, 0.08);
 }
 
+.content,
+.project-list,
+.timeline-scroll,
+.drawer-file-list {
+  --scrollbar-thumb: transparent;
+}
+
+.content:hover,
+.project-list:hover,
+.timeline-scroll:hover,
+.drawer-file-list:hover {
+  --scrollbar-thumb: rgba(74, 86, 98, 0.24);
+}
+
 .content::-webkit-scrollbar,
 .project-list::-webkit-scrollbar,
 .timeline-scroll::-webkit-scrollbar,
@@ -304,14 +318,7 @@ button:disabled {
 .timeline-scroll::-webkit-scrollbar-thumb,
 .drawer-file-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: transparent;
-}
-
-.content:hover::-webkit-scrollbar-thumb,
-.project-list:hover::-webkit-scrollbar-thumb,
-.timeline-scroll:hover::-webkit-scrollbar-thumb,
-.drawer-file-list:hover::-webkit-scrollbar-thumb {
-  background: rgba(74, 86, 98, 0.24);
+  background: var(--scrollbar-thumb);
 }
 
 .local-note.hero {
