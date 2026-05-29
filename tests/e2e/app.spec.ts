@@ -146,6 +146,11 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
       localNoteVisible: localNote.getBoundingClientRect().bottom <= window.innerHeight,
       sidebarWidth: sidebar.getBoundingClientRect().width,
       contentLeft: content.getBoundingClientRect().left,
+      contentWidth: content.getBoundingClientRect().width,
+      cardWidth: (document.querySelector(".timeline-card") as HTMLElement).getBoundingClientRect().width,
+      projectPathWidth: (document.querySelector(".project-card small") as HTMLElement).getBoundingClientRect().width,
+      projectCardWidth: (document.querySelector(".project-card") as HTMLElement).getBoundingClientRect().width,
+      projectListClientWidth: projectList.clientWidth,
     };
   });
 
@@ -159,6 +164,15 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.addButtonVisible).toBe(true);
   expect(layout.localNoteVisible).toBe(true);
   expect(layout.sidebarWidth).toBe(420);
+  expect(layout.projectPathWidth).toBeGreaterThan(layout.projectCardWidth - 100);
+
+  const hoverListWidth = await page.evaluate(() => {
+    const projectList = document.querySelector(".project-list") as HTMLElement;
+    return projectList.clientWidth;
+  });
+  await page.locator(".project-list").hover();
+  const hoveredListWidth = await page.evaluate(() => (document.querySelector(".project-list") as HTMLElement).clientWidth);
+  expect(hoveredListWidth).toBe(hoverListWidth);
 
   await page.setViewportSize({ width: 1280, height: 620 });
   const shortListHeight = await page.evaluate(() => (document.querySelector(".project-list") as HTMLElement).clientHeight);
@@ -167,6 +181,18 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   const tallListHeight = await page.evaluate(() => (document.querySelector(".project-list") as HTMLElement).clientHeight);
 
   expect(tallListHeight).toBeGreaterThan(shortListHeight);
+
+  await page.setViewportSize({ width: 1600, height: 860 });
+  const wideLayout = await page.evaluate(() => {
+    const content = document.querySelector(".content") as HTMLElement;
+    return {
+      contentWidth: content.getBoundingClientRect().width,
+      cardWidth: (document.querySelector(".timeline-card") as HTMLElement).getBoundingClientRect().width,
+    };
+  });
+
+  expect(wideLayout.contentWidth).toBeGreaterThan(layout.contentWidth);
+  expect(wideLayout.cardWidth).toBeGreaterThan(layout.cardWidth);
 
   const resizer = page.getByRole("separator", { name: "调整左侧栏宽度" });
   await resizer.hover();
@@ -177,15 +203,18 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   const expandedLayout = await page.evaluate(() => {
     const sidebar = document.querySelector(".sidebar") as HTMLElement;
     const content = document.querySelector(".content") as HTMLElement;
+    const projectPath = document.querySelector(".project-card small") as HTMLElement;
 
     return {
       sidebarWidth: sidebar.getBoundingClientRect().width,
       contentLeft: content.getBoundingClientRect().left,
+      projectPathWidth: projectPath.getBoundingClientRect().width,
     };
   });
 
   expect(expandedLayout.sidebarWidth).toBeGreaterThan(layout.sidebarWidth);
   expect(expandedLayout.contentLeft).toBeGreaterThan(layout.contentLeft);
+  expect(expandedLayout.projectPathWidth).toBeGreaterThan(layout.projectPathWidth);
 
   await resizer.hover();
   await page.mouse.down();
@@ -254,6 +283,7 @@ test("有未保存变化时保存入口亮起并展示提示", async ({ page }) 
   await expect(page.getByText("有未保存的变化")).toBeVisible();
   await expect(page.getByText("新增 1 · 修改 0 · 删除 0")).toBeVisible();
   await expect(page.getByRole("button", { name: /保存当前好版本/ })).toBeEnabled();
+  await expect(page.locator(".toast")).toHaveCount(0);
 
   const headerLayout = await page.evaluate(() => {
     const title = document.querySelector(".project-name-row") as HTMLElement;

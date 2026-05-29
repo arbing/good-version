@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import type { AppStatus, ProjectDetail, ProjectListItem } from "./types";
 
@@ -105,7 +105,12 @@ function projectIdFromPayload(payload: unknown) {
 }
 
 describe("App", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
   afterEach(() => {
+    vi.useRealTimers();
     clearMocks();
   });
 
@@ -257,6 +262,8 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "保存" }));
 
     await screen.findByText("已保存当前好版本。");
+    expect(screen.getByRole("status")).toHaveTextContent("已保存当前好版本。");
+    expect(screen.queryByText("已保存当前好版本。", { selector: ".message" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
 
@@ -284,6 +291,13 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "保存" }));
 
     await screen.findByText("已保存当前好版本。");
+    expect(screen.getByRole("status")).toHaveTextContent("已保存当前好版本。");
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2700);
+    });
+
+    await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
   });
 
   it("可以在项目名右侧就地修改显示名", async () => {

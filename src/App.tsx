@@ -9,7 +9,7 @@ import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types
 
 const DEFAULT_SIDEBAR_WIDTH = 420;
 const MIN_SIDEBAR_WIDTH = 300;
-const MIN_CONTENT_WIDTH = 720;
+const MIN_CONTENT_WIDTH = 560;
 
 function App() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
@@ -23,6 +23,7 @@ function App() {
   const [selectedVersion, setSelectedVersion] = useState<Version>();
   const [rollbackVersion, setRollbackVersion] = useState<Version>();
   const [message, setMessage] = useState<string>();
+  const [toast, setToast] = useState<{ id: number; text: string }>();
   const [loading, setLoading] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const dataDirClickCount = useRef(0);
@@ -63,6 +64,19 @@ function App() {
     window.addEventListener("resize", handleWindowResize);
     return () => window.removeEventListener("resize", handleWindowResize);
   }, []);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setToast(undefined), 2600);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  function showToast(text: string) {
+    setToast({ id: Date.now(), text });
+  }
 
   async function bootstrap() {
     setLoading(true);
@@ -112,7 +126,7 @@ function App() {
       setProjects(loadedProjects);
       setSelectedProjectId(projectDetail.project.id);
       setDetail(projectDetail);
-      setMessage("已添加项目，并保存了初始好版本。");
+      showToast("已添加项目，并保存了初始好版本。");
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
@@ -137,7 +151,7 @@ function App() {
       await loadDetail(detail.project.id);
       setShowSave(false);
       setNote("");
-      setMessage("已保存当前好版本。");
+      showToast("已保存当前好版本。");
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
@@ -161,7 +175,7 @@ function App() {
       setRollbackVersion(undefined);
       setSelectedVersion(undefined);
       setProjects(await invoke<ProjectListItem[]>("list_projects"));
-      setMessage("已经回到选择的好版本。");
+      showToast("已经回到选择的好版本。");
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
@@ -183,7 +197,7 @@ function App() {
       setDetail(projectDetail);
       setProjects(await invoke<ProjectListItem[]>("list_projects"));
       setEditingName(false);
-      setMessage("项目显示名已更新。");
+      showToast("项目显示名已更新。");
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
@@ -208,7 +222,7 @@ function App() {
       });
       setDetail(projectDetail);
       setProjects(await invoke<ProjectListItem[]>("list_projects"));
-      setMessage("已重新关联项目文件夹。");
+      showToast("已重新关联项目文件夹。");
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
@@ -329,7 +343,7 @@ function App() {
       />
 
       <section className="content">
-        {message && <div className="message">{message}</div>}
+        {message && <div className="message error">{message}</div>}
         {loading && <div className="message muted">正在处理，请稍等…</div>}
         {detail ? (
           <ProjectDetailView
@@ -363,6 +377,8 @@ function App() {
           </section>
         )}
       </section>
+
+      {toast && <div className="toast" role="status">{toast.text}</div>}
 
       {showSave && (
         <div className="modal-mask">
