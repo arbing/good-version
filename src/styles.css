@@ -210,7 +210,8 @@ button:disabled {
   flex: 1;
   flex-direction: column;
   gap: 12px;
-  overflow: auto;
+  overflow: hidden;
+  overflow-y: overlay;
 }
 
 .project-list:has(.empty-state) {
@@ -526,7 +527,8 @@ button:disabled {
   min-height: 0;
   flex: 1;
   margin-top: 26px;
-  overflow: auto;
+  overflow: hidden;
+  overflow-y: overlay;
 }
 
 .timeline {
@@ -1079,7 +1081,8 @@ button:disabled {
 .drawer-file-list {
   min-height: 0;
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
+  overflow-y: overlay;
   padding: 0 22px 28px;
 }
 

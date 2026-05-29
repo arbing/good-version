@@ -151,6 +151,8 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
       projectPathWidth: (document.querySelector(".project-card small") as HTMLElement).getBoundingClientRect().width,
       projectCardWidth: (document.querySelector(".project-card") as HTMLElement).getBoundingClientRect().width,
       projectListClientWidth: projectList.clientWidth,
+      projectListOverflowY: window.getComputedStyle(projectList).overflowY,
+      timelineScrollOverflowY: window.getComputedStyle(timelineScroll).overflowY,
     };
   });
 
@@ -158,6 +160,8 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.projectListScrollable).toBe(true);
   expect(layout.contentScrollable).toBe(false);
   expect(layout.timelineScrollable).toBe(true);
+  expect(layout.projectListOverflowY).toBe("overlay");
+  expect(layout.timelineScrollOverflowY).toBe("overlay");
   expect(layout.resizerLineCount).toBe("1px");
   expect(layout.sidebarBorderRight).toBe("0px");
   expect(layout.brandVisible).toBe(true);
