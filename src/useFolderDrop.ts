@@ -4,7 +4,7 @@ import { useEffect } from "react";
 type FolderDropHandlers = {
   onEnter: () => void;
   onLeave: () => void;
-  onDrop: (path: string) => void;
+  onDrop: (paths: string[]) => void;
 };
 
 export function useFolderDrop({ onEnter, onLeave, onDrop }: FolderDropHandlers) {
@@ -27,9 +27,8 @@ export function useFolderDrop({ onEnter, onLeave, onDrop }: FolderDropHandlers) 
 
           if (event.payload.type === "drop") {
             onLeave();
-            const [path] = event.payload.paths;
-            if (path) {
-              onDrop(path);
+            if (event.payload.paths.length > 0) {
+              onDrop(event.payload.paths);
             }
           }
         })

@@ -80,6 +80,11 @@ function App() {
     setToast({ id: Date.now(), text });
   }
 
+  const selectProject = useCallback((projectId: string | undefined) => {
+    setSelectedVersion(undefined);
+    setSelectedProjectId(projectId);
+  }, []);
+
   async function bootstrap() {
     setLoading(true);
     try {
@@ -89,7 +94,7 @@ function App() {
       ]);
       setStatus(appStatus);
       setProjects(loadedProjects);
-      setSelectedProjectId(loadedProjects[0]?.id);
+      selectProject(loadedProjects[0]?.id);
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
@@ -107,36 +112,61 @@ function App() {
     }
   }
 
-  const addProjectPath = useCallback(async (path: string) => {
-    const normalizedPath = normalizePath(path);
-    const existingProject = projects.find((project) => normalizePath(project.path) === normalizedPath);
-    if (existingProject) {
-      setMessage(undefined);
-      setSelectedProjectId(existingProject.id);
-      showToast("这个项目已经在列表中，已为你切换过去。");
+  const addProjectPaths = useCallback(async (paths: string[]) => {
+    if (paths.length === 0) {
       return;
     }
 
     setLoading(true);
     setMessage(undefined);
     try {
-      const projectDetail = await invoke<ProjectDetail>("add_project", { path });
-      const loadedProjects = await invoke<ProjectListItem[]>("list_projects");
-      setProjects(loadedProjects);
-      setSelectedProjectId(projectDetail.project.id);
-      setDetail(projectDetail);
-      showToast("已添加项目，并保存了初始好版本。");
+      const knownPaths = new Set(projects.map((project) => normalizePath(project.path)));
+      let lastProjectId: string | undefined;
+      let lastProjectDetail: ProjectDetail | undefined;
+      let addedCount = 0;
+
+      for (const path of paths) {
+        const normalizedPath = normalizePath(path);
+        const existingProject = projects.find((project) => normalizePath(project.path) === normalizedPath);
+        if (existingProject) {
+          lastProjectId = existingProject.id;
+          continue;
+        }
+        if (knownPaths.has(normalizedPath)) {
+          continue;
+        }
+
+        lastProjectDetail = await invoke<ProjectDetail>("add_project", { path });
+        lastProjectId = lastProjectDetail.project.id;
+        knownPaths.add(normalizedPath);
+        addedCount += 1;
+      }
+
+      if (addedCount > 0) {
+        setProjects(await invoke<ProjectListItem[]>("list_projects"));
+      }
+      if (lastProjectId) {
+        selectProject(lastProjectId);
+      }
+      if (lastProjectDetail?.project.id === lastProjectId) {
+        setDetail(lastProjectDetail);
+      }
+      showToast(addedCount > 0 ? "已添加项目，并保存了初始好版本。" : "这个项目已经在列表中，已为你切换过去。");
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
       setLoading(false);
     }
-  }, [projects]);
+  }, [projects, selectProject]);
+
+  const addProjectPath = useCallback(async (path: string) => {
+    await addProjectPaths([path]);
+  }, [addProjectPaths]);
 
   const startFolderDrag = useCallback(() => setDraggingFolder(true), []);
   const stopFolderDrag = useCallback(() => setDraggingFolder(false), []);
 
-  const handleFolderDrop = useCallback((path: string) => void addProjectPath(path), [addProjectPath]);
+  const handleFolderDrop = useCallback((paths: string[]) => void addProjectPaths(paths), [addProjectPaths]);
 
   useFolderDrop({
     onEnter: startFolderDrag,
@@ -344,7 +374,7 @@ function App() {
                 <button
                   className={`project-card ${project.id === selectedProjectId ? "active" : ""}`}
                   key={project.id}
-                  onClick={() => setSelectedProjectId(project.id)}
+                  onClick={() => selectProject(project.id)}
                 >
                   <span className="project-icon"><Folder size={24} /></span>
                   <span>

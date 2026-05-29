@@ -374,6 +374,106 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
 
+  it("拖拽多个新文件夹后逐个创建项目并切到最后一个", async () => {
+    const draggedDetails: Record<string, ProjectDetail> = {
+      "/tmp/dragged-a": {
+        ...projectDetail(false, "project-2"),
+        project: { ...secondProject, path: "/tmp/dragged-a" },
+      },
+      "/tmp/dragged-b": {
+        ...projectDetail(false, "project-2"),
+        project: { ...secondProject, id: "project-3", displayName: "第三个项目", path: "/tmp/dragged-b" },
+      },
+    };
+    const addProjectPaths: string[] = [];
+    mockWindows("main");
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return [
+          projectList()[0],
+          ...addProjectPaths.map((path, index) => ({
+            ...secondProject,
+            id: `project-${index + 2}`,
+            displayName: index === 0 ? "第二个项目" : "第三个项目",
+            path,
+            versionCount: 1,
+            latestVersionAt: secondVersion.createdAt,
+          })),
+        ];
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = projectIdFromPayload(payload);
+        if (projectId === "project-3") {
+          return draggedDetails["/tmp/dragged-b"];
+        }
+        if (projectId === "project-2") {
+          return draggedDetails["/tmp/dragged-a"];
+        }
+        return projectDetail(false);
+      }
+      if (cmd === "add_project") {
+        const path = payloadField(payload, "path")?.toString() ?? "";
+        addProjectPaths.push(path);
+        return draggedDetails[path];
+      }
+    }, { shouldMockEvents: true });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    await act(async () => {
+      await emit("tauri://drag-drop", { paths: ["/tmp/dragged-a", "/tmp/dragged-b"], position: { x: 10, y: 10 } });
+    });
+
+    await screen.findByText("已添加项目，并保存了初始好版本。");
+    expect(addProjectPaths).toEqual(["/tmp/dragged-a", "/tmp/dragged-b"]);
+    expect(screen.getByRole("heading", { name: "第三个项目" })).toBeInTheDocument();
+  });
+
+  it("拖拽已在列表中的项目切换时关闭变化抽屉", async () => {
+    const changedVersion = {
+      ...version,
+      changeSummary: {
+        added: 1,
+        modified: 0,
+        deleted: 0,
+        files: [{ path: "README.md", status: "added" as const }],
+      },
+    };
+    mockWindows("main");
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = projectIdFromPayload(payload) === "project-2" ? "project-2" : "project-1";
+        return projectId === "project-1"
+          ? { ...projectDetail(false), versions: [changedVersion] }
+          : projectDetail(false, projectId);
+      }
+    }, { shouldMockEvents: true });
+
+    render(<App />);
+
+    await screen.findByText("当前已经是已保存的好版本。");
+    fireEvent.click(screen.getByRole("button", { name: "查看变化" }));
+    expect(screen.getByRole("heading", { name: "这次变化" })).toBeInTheDocument();
+
+    await act(async () => {
+      await emit("tauri://drag-drop", { paths: ["/tmp/project-2"], position: { x: 10, y: 10 } });
+    });
+
+    await screen.findByText("这个项目已经在列表中，已为你切换过去。");
+    expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "这次变化" })).not.toBeInTheDocument();
+  });
+
   it("可以在项目名右侧就地修改显示名", async () => {
     const renamedDetail = { ...projectDetail(false), project: { ...baseProject, displayName: "新项目名" } };
     mockIPC((cmd, payload) => {
