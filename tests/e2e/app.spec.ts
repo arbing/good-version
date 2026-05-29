@@ -153,6 +153,9 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
       projectListClientWidth: projectList.clientWidth,
       projectListOverflowY: window.getComputedStyle(projectList).overflowY,
       timelineScrollOverflowY: window.getComputedStyle(timelineScroll).overflowY,
+      projectListPaddingRight: window.getComputedStyle(projectList).paddingRight,
+      sidebarPaddingLeft: window.getComputedStyle(sidebar).paddingLeft,
+      sidebarPaddingRight: window.getComputedStyle(sidebar).paddingRight,
     };
   });
 
@@ -162,6 +165,8 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.timelineScrollable).toBe(true);
   expect(layout.projectListOverflowY).toBe("auto");
   expect(layout.timelineScrollOverflowY).toBe("auto");
+  expect(layout.projectListPaddingRight).toBe("4px");
+  expect(layout.sidebarPaddingLeft).toBe(layout.sidebarPaddingRight);
   expect(layout.resizerLineCount).toBe("1px");
   expect(layout.sidebarBorderRight).toBe("0px");
   expect(layout.brandVisible).toBe(true);
@@ -300,4 +305,69 @@ test("有未保存变化时保存入口亮起并展示提示", async ({ page }) 
 
   expect(headerLayout.saveBelowTitle).toBe(true);
   expect(headerLayout.exportButtonVisible).toBe(false);
+});
+
+test("保存好版本后 toast 在窗口顶部水平居中", async ({ page }) => {
+  await page.addInitScript(() => {
+    const project = {
+      id: "project-1",
+      displayName: "测试项目",
+      path: "/tmp/project-1",
+      gitDirPath: "/tmp/data/repositories/project-1",
+      usesExternalGitDir: true,
+      createdAt: "2026-05-29 10:00:00",
+      updatedAt: "2026-05-29 10:00:00",
+      currentVersionId: "version-1",
+    };
+    const version = {
+      id: "version-1",
+      projectId: "project-1",
+      title: "初始好版本",
+      commitHash: "abc",
+      tagName: "good-version/version-1",
+      createdAt: "2026-05-29 10:00:00",
+      isInitial: true,
+      isRollbackCheckpoint: false,
+      changeSummary: { added: 0, modified: 0, deleted: 0, files: [] },
+    };
+    window.__TAURI_INTERNALS__ = {
+      invoke: async (cmd: string) => {
+        if (cmd === "get_app_status") return { dataDir: "/tmp/good-version" };
+        if (cmd === "list_projects") return [{ ...project, versionCount: 1, latestVersionAt: version.createdAt }];
+        if (cmd === "get_project_detail") {
+          return {
+            project,
+            versions: [version],
+            pathExists: true,
+            storageUsage: { workTreeBytes: 1024, versionDataBytes: 2048 },
+            currentChangeSummary: { added: 1, modified: 0, deleted: 0, files: [{ path: "README.md", status: "added" }] },
+          };
+        }
+        if (cmd === "save_version") return { ...version, id: "version-2", title: "第 2 个好版本" };
+        return null;
+      },
+      transformCallback: () => 1,
+      unregisterCallback: () => undefined,
+      convertFileSrc: (filePath: string) => filePath,
+    };
+  });
+
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: /保存当前好版本/ })).toBeEnabled();
+  await page.getByRole("button", { name: /保存当前好版本/ }).click();
+  await page.getByRole("button", { name: "保存" }).click();
+
+  const toast = page.locator(".toast");
+  await expect(toast).toBeVisible();
+
+  const position = await page.evaluate(() => {
+    const el = document.querySelector(".toast") as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    return {
+      toastCenterX: Math.round((rect.left + rect.right) / 2),
+      viewportCenterX: Math.round(window.innerWidth / 2),
+    };
+  });
+
+  expect(Math.abs(position.toastCenterX - position.viewportCenterX)).toBeLessThan(5);
 });

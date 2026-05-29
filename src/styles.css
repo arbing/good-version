@@ -45,7 +45,7 @@ button:disabled {
   flex-direction: column;
   gap: 18px;
   overflow: hidden;
-  padding: 34px 22px 34px 18px;
+  padding: 34px 18px 34px 18px;
   background: linear-gradient(180deg, rgba(251, 252, 251, 0.98), rgba(244, 246, 245, 0.94));
 }
 
@@ -211,6 +211,7 @@ button:disabled {
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .project-list:has(.empty-state) {
@@ -422,7 +423,8 @@ button:disabled {
 .toast {
   position: fixed;
   top: 22px;
-  right: 28px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 40;
   border: 1px solid rgba(47, 153, 83, 0.2);
   border-radius: 12px;
