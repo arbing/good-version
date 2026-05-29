@@ -28,11 +28,36 @@ button:disabled {
 }
 
 .app-shell {
+  position: relative;
   display: flex;
   height: 100vh;
   min-height: 0;
   overflow: hidden;
   background: #fbfcfb;
+}
+
+.app-shell.dragging-folder::after {
+  position: absolute;
+  inset: 18px;
+  z-index: 40;
+  border: 2px dashed #2f9953;
+  border-radius: 22px;
+  background: rgba(47, 153, 83, 0.08);
+  content: "";
+  pointer-events: none;
+}
+
+.drag-overlay {
+  z-index: 41;
+  border-color: rgba(47, 153, 83, 0.24);
+  border-radius: 999px;
+  padding: 12px 22px;
+  color: #1d7a3e;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 32px rgba(38, 88, 55, 0.14);
+  font-size: 17px;
+  font-weight: 600;
+  pointer-events: none;
 }
 
 .sidebar {

@@ -1,11 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Folder, Plus, PlusCircle, ShieldCheck } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EmptyState, FolderIllustration, LocalDataNote } from "./components/EmptyStates";
 import { ChangeSummaryDrawer, ProjectDetailView } from "./components/ProjectDetailView";
 import { numberedVersionNote } from "./formatters";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
+import { useFolderDrop } from "./useFolderDrop";
 
 const DEFAULT_SIDEBAR_WIDTH = 420;
 const MIN_SIDEBAR_WIDTH = 300;
@@ -25,6 +26,7 @@ function App() {
   const [message, setMessage] = useState<string>();
   const [toast, setToast] = useState<{ id: number; text: string }>();
   const [loading, setLoading] = useState(false);
+  const [draggingFolder, setDraggingFolder] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const dataDirClickCount = useRef(0);
   const dataDirClickTimer = useRef<number | undefined>(undefined);
@@ -105,6 +107,43 @@ function App() {
     }
   }
 
+  const addProjectPath = useCallback(async (path: string) => {
+    const normalizedPath = normalizePath(path);
+    const existingProject = projects.find((project) => normalizePath(project.path) === normalizedPath);
+    if (existingProject) {
+      setMessage(undefined);
+      setSelectedProjectId(existingProject.id);
+      showToast("这个项目已经在列表中，已为你切换过去。");
+      return;
+    }
+
+    setLoading(true);
+    setMessage(undefined);
+    try {
+      const projectDetail = await invoke<ProjectDetail>("add_project", { path });
+      const loadedProjects = await invoke<ProjectListItem[]>("list_projects");
+      setProjects(loadedProjects);
+      setSelectedProjectId(projectDetail.project.id);
+      setDetail(projectDetail);
+      showToast("已添加项目，并保存了初始好版本。");
+    } catch (error) {
+      setMessage(toMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  }, [projects]);
+
+  const startFolderDrag = useCallback(() => setDraggingFolder(true), []);
+  const stopFolderDrag = useCallback(() => setDraggingFolder(false), []);
+
+  const handleFolderDrop = useCallback((path: string) => void addProjectPath(path), [addProjectPath]);
+
+  useFolderDrop({
+    onEnter: startFolderDrag,
+    onLeave: stopFolderDrag,
+    onDrop: handleFolderDrop,
+  });
+
   async function addProject() {
     setMessage(undefined);
     let selected: string | null | string[];
@@ -118,20 +157,7 @@ function App() {
       return;
     }
 
-    setLoading(true);
-    setMessage(undefined);
-    try {
-      const projectDetail = await invoke<ProjectDetail>("add_project", { path: selected });
-      const loadedProjects = await invoke<ProjectListItem[]>("list_projects");
-      setProjects(loadedProjects);
-      setSelectedProjectId(projectDetail.project.id);
-      setDetail(projectDetail);
-      showToast("已添加项目，并保存了初始好版本。");
-    } catch (error) {
-      setMessage(toMessage(error));
-    } finally {
-      setLoading(false);
-    }
+    await addProjectPath(selected);
   }
 
   async function saveCurrentVersion() {
@@ -295,7 +321,8 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${draggingFolder ? "dragging-folder" : ""}`}>
+      {draggingFolder && <div className="toast drag-overlay">松开鼠标，添加这个项目文件夹</div>}
       <aside className="sidebar" style={{ width: sidebarWidth }}>
         <div className="brand">
           <span className="brand-icon"><ShieldCheck size={30} /></span>
@@ -425,6 +452,10 @@ function App() {
 
 function nextVersionNote(detail: ProjectDetail) {
   return numberedVersionNote(detail.versions.length + 1);
+}
+
+function normalizePath(path: string) {
+  return path.trim().toLowerCase();
 }
 
 function toMessage(error: unknown) {

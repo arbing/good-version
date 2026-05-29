@@ -1,5 +1,6 @@
+import { emit } from "@tauri-apps/api/event";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
+import { clearMocks, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import type { AppStatus, ProjectDetail, ProjectListItem } from "./types";
@@ -298,6 +299,79 @@ describe("App", () => {
     });
 
     await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
+  });
+
+  it("拖拽新文件夹后创建项目并切换过去", async () => {
+    const draggedProject = {
+      ...projectDetail(false, "project-2"),
+      project: { ...secondProject, path: "/tmp/dragged-project" },
+    };
+    let addProjectPath: string | undefined;
+    mockWindows("main");
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return addProjectPath
+          ? [projectList()[0], { ...secondProject, path: addProjectPath, versionCount: 1, latestVersionAt: secondVersion.createdAt }]
+          : [projectList()[0]];
+      }
+      if (cmd === "get_project_detail") {
+        return projectIdFromPayload(payload) === "project-2" ? draggedProject : projectDetail(false);
+      }
+      if (cmd === "add_project") {
+        addProjectPath = payloadField(payload, "path")?.toString();
+        return draggedProject;
+      }
+    }, { shouldMockEvents: true });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    await act(async () => {
+      await emit("tauri://drag-enter", { paths: ["/tmp/dragged-project"], position: { x: 10, y: 10 } });
+    });
+    expect(screen.getByText("松开鼠标，添加这个项目文件夹")).toBeInTheDocument();
+
+    await act(async () => {
+      await emit("tauri://drag-drop", { paths: ["/tmp/dragged-project"], position: { x: 10, y: 10 } });
+    });
+
+    await screen.findByText("已添加项目，并保存了初始好版本。");
+    expect(addProjectPath).toBe("/tmp/dragged-project");
+    expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
+  });
+
+  it("拖拽已在列表中的项目时直接切换过去", async () => {
+    let addProjectCalled = false;
+    mockWindows("main");
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = projectIdFromPayload(payload) === "project-2" ? "project-2" : "project-1";
+        return projectDetail(false, projectId);
+      }
+      if (cmd === "add_project") {
+        addProjectCalled = true;
+      }
+    }, { shouldMockEvents: true });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    await act(async () => {
+      await emit("tauri://drag-drop", { paths: ["/tmp/project-2"], position: { x: 10, y: 10 } });
+    });
+
+    await screen.findByText("这个项目已经在列表中，已为你切换过去。");
+    expect(addProjectCalled).toBe(false);
+    expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
 
   it("可以在项目名右侧就地修改显示名", async () => {
