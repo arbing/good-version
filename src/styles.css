@@ -45,7 +45,7 @@ button:disabled {
   flex-direction: column;
   gap: 18px;
   overflow: hidden;
-  padding: 34px 18px 34px 18px;
+  padding: 34px 8px 34px 18px;
   background: linear-gradient(180deg, rgba(251, 252, 251, 0.98), rgba(244, 246, 245, 0.94));
 }
 
@@ -521,6 +521,7 @@ button:disabled {
   flex: 1;
   margin-top: 26px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .timeline {

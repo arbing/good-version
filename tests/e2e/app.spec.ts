@@ -154,6 +154,7 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
       projectListOverflowY: window.getComputedStyle(projectList).overflowY,
       timelineScrollOverflowY: window.getComputedStyle(timelineScroll).overflowY,
       projectListPaddingRight: window.getComputedStyle(projectList).paddingRight,
+      timelineScrollPaddingRight: window.getComputedStyle(timelineScroll).paddingRight,
       sidebarPaddingLeft: window.getComputedStyle(sidebar).paddingLeft,
       sidebarPaddingRight: window.getComputedStyle(sidebar).paddingRight,
     };
@@ -166,7 +167,10 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.projectListOverflowY).toBe("auto");
   expect(layout.timelineScrollOverflowY).toBe("auto");
   expect(layout.projectListPaddingRight).toBe("4px");
-  expect(layout.sidebarPaddingLeft).toBe(layout.sidebarPaddingRight);
+  expect(layout.timelineScrollPaddingRight).toBe("4px");
+  // sidebar right padding 补偿滚动条(6px)+列表内边距(4px)，使卡片左右视觉对称
+  expect(layout.sidebarPaddingLeft).toBe("18px");
+  expect(layout.sidebarPaddingRight).toBe("8px");
   expect(layout.resizerLineCount).toBe("1px");
   expect(layout.sidebarBorderRight).toBe("0px");
   expect(layout.brandVisible).toBe(true);
