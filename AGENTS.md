@@ -1,73 +1,25 @@
 # AGENTS.md
 
-## 项目概述
+## 项目定位
 
-「好版本」是一个面向非技术用户的本地桌面版本管理工具。
+「好版本」是面向非技术用户的本地桌面版本管理工具。
+核心用途是在使用 Coding Agent 修改项目时，保存和恢复“当前能正常工作的好版本”。
 
-核心目标是让不会 Git 的用户，在使用 Coding Agent 创建和修改项目时，可以保存“当前能正常工作的好版本”，并在项目被改坏后安全回到旧版本。
+## 测试要求
 
-## 当前阶段
+涉及功能变更时，同步评估是否需要补充或更新：
 
-当前已从 MVP 工程实现进入测试补强和体验对齐阶段。
+- Vitest 前端单元测试
+- Rust 单元测试
+- Playwright E2E 测试
 
-已建立 Tauri + React + TypeScript + Rust 工程骨架，并完成本地项目版本管理主路径：添加项目、保存好版本、查看时间线、查看变化、回退、导出副本、目录丢失提示、重新关联目录、存储占用展示、打开项目文件夹、修改显示名。当前已补充前端单元测试、Rust 单元测试和 Playwright E2E 测试，并继续对齐 `prototypes/` 高保真原型。
+## 参考目录
 
-主要资料分为三类：
-
-需求与方案文档在 `docs/` 目录：
-
-- `docs/mvp-requirements.md`：MVP 需求说明
-- `docs/prd.md`：产品需求文档
-- `docs/competitor-research.md`：竞品调研摘要
-- `docs/scope.md`：首版功能边界
-- `docs/technical-constraints.md`：技术实现约束
-- `docs/technical-plan.md`：技术方案
-- `docs/development-tasks.md`：开发任务拆分
-- `docs/prototype-structure.md`：原型页面结构
-
-高保真原型在 `prototypes/` 目录：
-
-- `prototypes/*.png`：高保真原型设计稿
-- `prototypes/*.html`：对应的 HTML + Tailwind 高保真还原稿
-- `prototypes/assets/good-version-prototype.css`：原型共享样式
-
-应用工程文件：
-
-- `package.json`：pnpm 脚本和前端依赖
-- `src/`：React + TypeScript 前端应用与 Vitest 测试
-- `tests/e2e/`：Playwright E2E 测试
-- `src-tauri/`：Tauri Rust 后端、Git 与文件系统能力及 Rust 单元测试
-- `vite.config.ts` / `tsconfig.json` / `vitest.config.ts` / `playwright.config.ts`：构建、类型和测试配置
-
-## 产品原则
-
-- 面向非技术用户，不要求理解 Git
-- 界面不暴露 Git、commit、branch、tag 等概念
-- 底层可以使用 Git 实现版本保存和回退
-- 本地优先，不自动上传、不自动推送
-- 回退前必须先保存当前状态
-- 每个好版本必须能长期找回
-
-## 首版技术方向
-
-- Tauri 桌面应用
-- React + TypeScript + Vite 前端
-- Rust 侧实现文件系统、Git、导出和项目管理能力
-- pnpm 作为前端包管理器
-- 支持 macOS + Windows
-- 应用内置 Git 能力，不要求用户安装 Git
-- 中文界面
-
-## 协作要求
-
-- 修改需求前先确认产品决策是否已记录在 `docs/`
-- 不主动扩大 MVP 范围
-- 不引入云同步、团队协作、分支管理、代码 diff、自动测试等首版明确不做的能力
-- 涉及回退逻辑时，优先保证可恢复和可验证
-- 完成 `docs/development-tasks.md` 中的任务后，及时更新对应进度
-- 优先使用 `pnpm` 运行前端脚本
-- 补充功能时同步考虑 Vitest、Rust 单元测试和 Playwright E2E 覆盖
-- 前端体验调整优先对照 `prototypes/*.html` 和高保真 PNG
+- `docs/`
+- `prototypes/`
+- `src/`
+- `tests/e2e/`
+- `src-tauri/`
 
 ## 常用命令
 
