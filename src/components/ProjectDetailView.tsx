@@ -46,6 +46,7 @@ export function ProjectDetailView({
                 <input
                   aria-label="项目显示名"
                   className="project-name-input"
+                  style={{ width: `${Math.max(projectName.length, 2)}em` }}
                   value={projectName}
                   onChange={(event) => onProjectNameChange(event.target.value)}
                 />

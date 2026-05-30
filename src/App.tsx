@@ -10,7 +10,7 @@ import { numberedVersionNote } from "./formatters";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 import { useFolderDrop } from "./useFolderDrop";
 
-const DEFAULT_SIDEBAR_WIDTH = 420;
+const DEFAULT_SIDEBAR_WIDTH = 360;
 const MIN_SIDEBAR_WIDTH = 300;
 const MIN_CONTENT_WIDTH = 560;
 

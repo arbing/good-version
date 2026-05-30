@@ -170,14 +170,14 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.projectListPaddingRight).toBe("4px");
   expect(layout.timelineScrollPaddingRight).toBe("4px");
   // sidebar right padding 补偿滚动条(6px)+列表内边距(4px)，使卡片左右视觉对称
-  expect(layout.sidebarPaddingLeft).toBe("18px");
+  expect(layout.sidebarPaddingLeft).toBe("14px");
   expect(layout.sidebarPaddingRight).toBe("8px");
   expect(layout.resizerLineCount).toBe("1px");
   expect(layout.sidebarBorderRight).toBe("0px");
   expect(layout.brandVisible).toBe(true);
   expect(layout.dropzoneVisible).toBe(true);
   expect(layout.localNoteVisible).toBe(true);
-  expect(layout.sidebarWidth).toBe(420);
+  expect(layout.sidebarWidth).toBe(360);
   expect(layout.projectPathWidth).toBeGreaterThan(layout.projectCardWidth - 100);
 
   const hoverListWidth = await page.evaluate(() => {
@@ -369,10 +369,12 @@ test("保存好版本后 toast 在窗口顶部水平居中", async ({ page }) =>
     const el = document.querySelector(".toast") as HTMLElement;
     const rect = el.getBoundingClientRect();
     return {
+      toastTop: Math.round(rect.top),
       toastCenterX: Math.round((rect.left + rect.right) / 2),
       viewportCenterX: Math.round(window.innerWidth / 2),
     };
   });
 
+  expect(position.toastTop).toBe(0);
   expect(Math.abs(position.toastCenterX - position.viewportCenterX)).toBeLessThan(5);
 });

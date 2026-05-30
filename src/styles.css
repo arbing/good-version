@@ -1316,3 +1316,385 @@ button:disabled {
     color: #56606a;
     font-size: 13px;
 }
+
+/* Compact density overrides */
+body {
+    font-size: 14px;
+}
+
+.selection-context-menu {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.drag-overlay {
+    padding: 10px 18px;
+    font-size: 15px;
+}
+
+.sidebar {
+    width: 360px;
+    gap: 12px;
+    padding: 22px 8px 22px 14px;
+}
+
+.brand {
+    gap: 10px;
+}
+
+.brand h1 {
+    font-size: 24px;
+}
+
+.brand-subtitle {
+    font-size: 14px;
+}
+
+.brand-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+}
+
+.add-button,
+.primary-button,
+.secondary-button,
+.warning-button {
+    min-height: 36px;
+    padding: 0 12px;
+}
+
+.icon-button {
+    width: 34px;
+    height: 34px;
+}
+
+.project-section {
+    margin-top: 6px;
+}
+
+.project-section h2 {
+    margin-bottom: 9px;
+    font-size: 15px;
+}
+
+.project-list {
+    gap: 8px;
+}
+
+.folder-dropzone.compact {
+    padding: 10px;
+}
+
+.folder-dropzone.compact .folder-dropzone-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.folder-dropzone.compact .secondary-button {
+    min-height: 34px;
+    font-size: 13px;
+}
+
+.folder-dropzone-copy strong {
+    font-size: 14px;
+}
+
+.folder-dropzone-copy small {
+    font-size: 12px;
+}
+
+.folder-dropzone.empty {
+    min-height: 340px;
+    padding: 30px;
+}
+
+.folder-dropzone.empty h2 {
+    font-size: 28px;
+}
+
+.folder-dropzone.empty p {
+    font-size: 16px;
+}
+
+.folder-dropzone.empty > small {
+    font-size: 14px;
+}
+
+.project-card {
+    gap: 10px;
+    padding: 10px;
+}
+
+.project-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.local-note {
+    min-height: 68px;
+    gap: 12px;
+    padding: 0 12px;
+}
+
+.local-note.hero {
+    min-height: 60px;
+    margin-top: 16px;
+    padding: 0 20px;
+}
+
+.local-note-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.local-note.hero .local-note-icon {
+    width: 34px;
+    height: 34px;
+}
+
+.local-note-copy strong,
+.local-note.hero .local-note-copy strong {
+    font-size: 14px;
+}
+
+.local-note-copy small,
+.local-note.hero .local-note-copy small {
+    font-size: 13px;
+}
+
+.content {
+    padding: 24px 30px;
+}
+
+.message {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+}
+
+.toast {
+    padding: 10px 14px;
+}
+
+.detail-header {
+    gap: 14px;
+}
+
+.header-actions {
+    gap: 8px;
+}
+
+.header-actions .secondary-button,
+.header-actions .primary-button {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 14px;
+}
+
+.project-name-row {
+    gap: 8px;
+}
+
+.project-name-input {
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 24px;
+}
+
+.detail-header h2 {
+    font-size: 26px;
+}
+
+.detail-header p {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.timeline-scroll {
+    margin-top: 18px;
+}
+
+.timeline {
+    margin-left: 24px;
+    padding-left: 24px;
+}
+
+.timeline-card {
+    gap: 12px;
+    min-height: 88px;
+    margin-bottom: 12px;
+    padding: 0 16px;
+}
+
+.timeline-dot {
+    left: -24px;
+    width: 14px;
+    height: 14px;
+}
+
+.timeline-arrow {
+    left: -12px;
+    width: 24px;
+    height: 24px;
+}
+
+.version-time {
+    width: 128px;
+}
+
+.version-time strong {
+    font-size: 16px;
+}
+
+.version-time small {
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+.version-actions {
+    gap: 8px;
+}
+
+.version-actions .secondary-button,
+.version-actions .primary-button {
+    min-height: 38px;
+    padding: 0 14px;
+}
+
+.version-title {
+    gap: 8px;
+}
+
+.version-title strong {
+    font-size: 16px;
+}
+
+.version-title span {
+    font-size: 12px;
+}
+
+.chips {
+    margin-top: 10px;
+}
+
+.chip {
+    padding: 4px 8px;
+}
+
+.hero-empty > h2 {
+    font-size: 34px;
+}
+
+.hero-empty > p {
+    margin-top: 12px;
+    font-size: 16px;
+}
+
+.hero-add-button {
+    min-height: 48px;
+    margin-top: 18px;
+    padding: 0 24px;
+    font-size: 18px;
+}
+
+.empty-state {
+    min-height: 340px;
+}
+
+.empty-state strong {
+    font-size: 18px;
+}
+
+.empty-state small {
+    font-size: 14px;
+}
+
+.modal {
+    padding: 18px;
+}
+
+.modal textarea,
+.modal input {
+    padding: 10px;
+}
+
+.modal textarea {
+    height: 92px;
+}
+
+.modal-actions {
+    gap: 8px;
+}
+
+.rollback-target,
+.missing-state,
+.change-state {
+    padding: 10px;
+}
+
+.missing-state,
+.change-state {
+    margin-top: 16px;
+}
+
+.change-state {
+    min-height: 48px;
+    gap: 8px;
+    padding: 0 14px;
+}
+
+.change-state strong {
+    font-size: 14px;
+}
+
+.drawer {
+    width: 360px;
+}
+
+.drawer-header {
+    gap: 12px;
+    padding: 22px 18px 14px;
+}
+
+.drawer h3 {
+    font-size: 20px;
+}
+
+.drawer-file-list {
+    padding: 0 18px 22px;
+}
+
+.file-group {
+    margin-top: 20px;
+}
+
+.file-group h4 {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.file-row {
+    min-height: 34px;
+    gap: 8px;
+    padding: 0 10px;
+}
+
+.file-row strong {
+    font-size: 12px;
+}
+
+.toast {
+    top: 0;
+}
+
+.project-name-input {
+    width: auto;
+    min-width: 4em;
+    max-width: min(520px, 100%);
+}
+
+.project-name-input {
+    box-sizing: content-box;
+    min-width: 2em;
+    padding-inline: 6px;
+}

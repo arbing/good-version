@@ -641,7 +641,10 @@ describe("App", () => {
     await screen.findByRole("heading", { name: "缺货处理工具" });
     expect(screen.queryByRole("button", { name: /修改显示名/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "修改项目显示名" }));
-    fireEvent.change(screen.getByLabelText("项目显示名"), { target: { value: "新项目名" } });
+    const nameInput = screen.getByLabelText("项目显示名");
+    expect(nameInput).toHaveStyle({ width: "6em" });
+    fireEvent.change(nameInput, { target: { value: "新项目名" } });
+    expect(nameInput).toHaveStyle({ width: "4em" });
     fireEvent.click(screen.getByRole("button", { name: "提交项目显示名" }));
 
     await screen.findByText("项目显示名已更新。");
