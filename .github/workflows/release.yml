@@ -29,7 +29,7 @@ jobs:
             ext: dmg
 
           - name: macOS (Intel)
-            runner: macos-latest
+            runner: macos-13
             target: x86_64-apple-darwin
             artifact: macos-x64
             bundle_path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg
