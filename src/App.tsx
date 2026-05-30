@@ -103,6 +103,8 @@ function App() {
 
   const selectProject = useCallback((projectId: string | undefined) => {
     setSelectedVersion(undefined);
+    setEditingName(false);
+    setProjectName("");
     setSelectedProjectId(projectId);
   }, []);
 
@@ -165,6 +167,9 @@ function App() {
       }
       if (lastProjectId) {
         selectProject(lastProjectId);
+        if (!lastProjectDetail || lastProjectDetail.project.id !== lastProjectId) {
+          await loadDetail(lastProjectId);
+        }
       }
       if (lastProjectDetail?.project.id === lastProjectId) {
         setDetail(lastProjectDetail);

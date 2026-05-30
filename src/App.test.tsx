@@ -651,6 +651,33 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "新项目名" })).toBeInTheDocument();
   });
 
+  it("切换项目时退出项目名编辑状态", async () => {
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = projectIdFromPayload(payload) === "project-2" ? "project-2" : "project-1";
+        return projectDetail(false, projectId);
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    fireEvent.click(screen.getByRole("button", { name: "修改项目显示名" }));
+    expect(screen.getByLabelText("项目显示名")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "第二个项目/tmp/project-21 个好版本" }));
+
+    await screen.findByRole("heading", { name: "第二个项目" });
+    expect(screen.queryByLabelText("项目显示名")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "修改项目显示名" })).toBeInTheDocument();
+  });
+
   it("变化抽屉可通过蒙版关闭且不展示说明文案", async () => {
     const changedVersion = {
       ...version,
