@@ -693,6 +693,65 @@ describe("App", () => {
     await waitFor(() => expect(screen.queryByRole("heading", { name: "这次变化" })).not.toBeInTheDocument());
   });
 
+  it("导出版本压缩包时选择目录并调用后端", async () => {
+    let exportPayload: unknown;
+    mockedOpen.mockResolvedValue("/tmp/exports");
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return projectDetail(false);
+      }
+      if (cmd === "export_version_archive") {
+        exportPayload = payload;
+        return "/tmp/exports/缺货处理工具-初始好版本-2026-05-27.zip";
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("当前已经是已保存的好版本。");
+    fireEvent.click(screen.getByRole("button", { name: /导出压缩包/ }));
+
+    await screen.findByText("已导出这个好版本的压缩包。");
+    expect(mockedOpen).toHaveBeenCalledWith({ directory: true, multiple: false, title: "选择压缩包导出位置" });
+    expect(projectIdFromPayload(exportPayload)).toBe("project-1");
+    expect(payloadField(exportPayload, "versionId")).toBe("version-1");
+    expect(payloadField(exportPayload, "targetDir")).toBe("/tmp/exports");
+    expect(payloadField(exportPayload, "archiveName")).toBe("缺货处理工具-初始好版本-2026-05-27.zip");
+  });
+
+  it("取消选择导出目录时不调用后端", async () => {
+    let exportCalled = false;
+    mockedOpen.mockResolvedValue(null);
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return projectDetail(false);
+      }
+      if (cmd === "export_version_archive") {
+        exportCalled = true;
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("当前已经是已保存的好版本。");
+    fireEvent.click(screen.getByRole("button", { name: /导出压缩包/ }));
+
+    await waitFor(() => expect(mockedOpen).toHaveBeenCalled());
+    expect(exportCalled).toBe(false);
+  });
+
   it("回退需要确认，取消后不会调用回退接口", async () => {
     let rollbackCalled = false;
     mockIPC((cmd) => {

@@ -51,6 +51,11 @@ export function formatDate(value: string) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${time}`;
 }
 
+export function formatDateOnly(value: string) {
+  const date = parseDate(value);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 function parseDate(value: string) {
   return new Date(value.replace(" ", "T"));
 }

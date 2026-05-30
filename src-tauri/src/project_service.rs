@@ -3,9 +3,12 @@ use crate::metadata::{
     AppStatus, MetadataStore, Project, ProjectDetail, ProjectListItem, StorageUsage, Version,
 };
 use chrono::Local;
+use git2::{ObjectType, TreeWalkMode, TreeWalkResult};
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
+use zip::write::SimpleFileOptions;
 
 #[derive(Clone)]
 pub struct ProjectService {
@@ -234,6 +237,37 @@ impl ProjectService {
         copy_project_files(source, &target)
     }
 
+    pub fn export_version_archive(
+        &self,
+        project_id: &str,
+        version_id: &str,
+        target_dir: String,
+        archive_name: String,
+    ) -> Result<String, String> {
+        let mut project = self
+            .store
+            .load_projects()?
+            .into_iter()
+            .find(|project| project.id == project_id)
+            .ok_or_else(|| "没有找到这个项目。".to_string())?;
+        normalize_project_paths(&mut project);
+        let versions = self.store.load_versions(project_id)?;
+        let version = versions
+            .iter()
+            .find(|version| version.id == version_id)
+            .ok_or_else(|| "没有找到要导出的好版本。".to_string())?;
+        let repository = open_project_repository_for_export(&project)?;
+        let target_dir = PathBuf::from(target_dir.trim());
+        if !target_dir.exists() || !target_dir.is_dir() {
+            return Err("请选择一个存在的导出文件夹。".to_string());
+        }
+
+        let archive_path = available_archive_path(&target_dir, &archive_name);
+        write_version_archive(&repository, version, &project.display_name, &archive_path)?;
+        open_path(&target_dir.to_string_lossy())?;
+        Ok(path_text(&archive_path))
+    }
+
     pub fn rollback_to_version(
         &self,
         project_id: &str,
@@ -354,6 +388,20 @@ fn open_project_repository(project: &Project) -> Result<git2::Repository, String
     )
 }
 
+fn open_project_repository_for_export(project: &Project) -> Result<git2::Repository, String> {
+    if !Path::new(&project.path).exists() && !project.uses_external_git_dir {
+        return Err("项目文件夹不见了，请重新选择位置后再导出。".to_string());
+    }
+    if project.uses_external_git_dir {
+        let git_dir = Path::new(&project.git_dir_path);
+        if !git_dir.exists() {
+            return Err("这个好版本暂时无法导出。".to_string());
+        }
+        return git2::Repository::open_bare(git_dir).map_err(|_| "这个好版本暂时无法导出。".to_string());
+    }
+    open_project_repository(project)
+}
+
 fn path_text(path: &Path) -> String {
     strip_windows_verbatim_prefix(&path.to_string_lossy()).to_string()
 }
@@ -432,6 +480,91 @@ fn copy_project_files(source: &Path, target: &Path) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+fn available_archive_path(target_dir: &Path, archive_name: &str) -> PathBuf {
+    let base_name = archive_name
+        .trim()
+        .trim_end_matches(".zip")
+        .trim()
+        .trim_matches('.')
+        .to_string();
+    let base_name = if base_name.is_empty() {
+        "好版本".to_string()
+    } else {
+        base_name
+    };
+    let mut archive_path = target_dir.join(format!("{base_name}.zip"));
+    let mut index = 2;
+    while archive_path.exists() {
+        archive_path = target_dir.join(format!("{base_name}-{index}.zip"));
+        index += 1;
+    }
+    archive_path
+}
+
+fn write_version_archive(
+    repository: &git2::Repository,
+    version: &Version,
+    project_name: &str,
+    archive_path: &Path,
+) -> Result<(), String> {
+    let object = repository
+        .revparse_single(&format!("refs/tags/{}", version.tag_name))
+        .or_else(|_| repository.revparse_single(&version.commit_hash))
+        .map_err(|_| "这个好版本暂时无法导出。".to_string())?;
+    let commit = object
+        .peel_to_commit()
+        .map_err(|_| "这个好版本暂时无法导出。".to_string())?;
+    let tree = commit
+        .tree()
+        .map_err(|_| "这个好版本暂时无法导出。".to_string())?;
+    let file = fs::File::create(archive_path).map_err(|error| error.to_string())?;
+    let mut zip = zip::ZipWriter::new(file);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let root = archive_root_name(archive_path, project_name);
+    let mut error: Option<String> = None;
+
+    tree.walk(TreeWalkMode::PreOrder, |prefix, entry| {
+        if error.is_some() || entry.kind() != Some(ObjectType::Blob) {
+            return TreeWalkResult::Ok;
+        }
+        let Some(name) = entry.name() else {
+            return TreeWalkResult::Ok;
+        };
+        if prefix.is_empty() && name == ".git" {
+            return TreeWalkResult::Ok;
+        }
+        let path = format!("{root}/{prefix}{name}");
+        let result = repository
+            .find_blob(entry.id())
+            .map_err(|err| err.message().to_string())
+            .and_then(|blob| {
+                zip.start_file(path, options).map_err(|err| err.to_string())?;
+                zip.write_all(blob.content()).map_err(|err| err.to_string())
+            });
+        if let Err(message) = result {
+            error = Some(message);
+            return TreeWalkResult::Abort;
+        }
+        TreeWalkResult::Ok
+    })
+    .map_err(|err| err.message().to_string())?;
+
+    if let Some(message) = error {
+        return Err(message);
+    }
+    zip.finish().map_err(|error| error.to_string())?;
+    Ok(())
+}
+
+fn archive_root_name(archive_path: &Path, project_name: &str) -> String {
+    archive_path
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or(project_name)
+        .to_string()
 }
 
 fn open_path(path: &str) -> Result<(), String> {
@@ -544,6 +677,71 @@ mod tests {
             "SECRET=local"
         );
         assert!(!target.path().join(".git").exists());
+    }
+
+    #[test]
+    fn export_version_archive_writes_selected_snapshot_without_git_data() {
+        let data_dir = tempdir().unwrap();
+        let work_tree = tempdir().unwrap();
+        let export_dir = tempdir().unwrap();
+        fs::create_dir(work_tree.path().join("src")).unwrap();
+        fs::write(work_tree.path().join("README.md"), "initial").unwrap();
+        fs::write(work_tree.path().join(".env"), "SECRET=local").unwrap();
+        fs::write(work_tree.path().join("src").join("main.rs"), "fn main() {}").unwrap();
+        let service = ProjectService::new(data_dir.path().to_path_buf()).unwrap();
+        let initial_detail = service
+            .add_project(work_tree.path().to_string_lossy().to_string())
+            .unwrap();
+        let initial_version_id = initial_detail.versions[0].id.clone();
+
+        fs::write(work_tree.path().join("README.md"), "updated").unwrap();
+        service
+            .save_version(&initial_detail.project.id, Some("更新后可用".to_string()))
+            .unwrap();
+
+        let archive_path = available_archive_path(export_dir.path(), "项目-初始好版本.zip");
+        let mut project = initial_detail.project.clone();
+        normalize_project_paths(&mut project);
+        let repository = open_project_repository_for_export(&project).unwrap();
+        let versions = service.store.load_versions(&project.id).unwrap();
+        let initial_version = versions
+            .iter()
+            .find(|version| version.id == initial_version_id)
+            .unwrap();
+        write_version_archive(
+            &repository,
+            initial_version,
+            &project.display_name,
+            &archive_path,
+        )
+        .unwrap();
+
+        let file = fs::File::open(&archive_path).unwrap();
+        let mut archive = zip::ZipArchive::new(file).unwrap();
+        assert_eq!(archive.by_name("项目-初始好版本/README.md").unwrap().size(), 7);
+        assert!(archive.by_name("项目-初始好版本/.env").is_ok());
+        assert!(archive.by_name("项目-初始好版本/src/main.rs").is_ok());
+        assert!(archive.by_name("项目-初始好版本/.git/HEAD").is_err());
+        let mut readme = String::new();
+        std::io::Read::read_to_string(
+            &mut archive.by_name("项目-初始好版本/README.md").unwrap(),
+            &mut readme,
+        )
+        .unwrap();
+        assert_eq!(readme, "initial");
+        assert_eq!(fs::read_to_string(work_tree.path().join("README.md")).unwrap(), "updated");
+    }
+
+    #[test]
+    fn archive_path_appends_number_when_file_exists() {
+        let target = tempdir().unwrap();
+        fs::write(target.path().join("项目-版本.zip"), "old").unwrap();
+        fs::write(target.path().join("项目-版本-2.zip"), "old").unwrap();
+
+        assert_eq!(
+            available_archive_path(target.path(), "项目-版本.zip"),
+            target.path().join("项目-版本-3.zip")
+        );
     }
 
     #[test]

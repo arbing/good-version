@@ -149,6 +149,21 @@ fn export_project_copy(
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+fn export_version_archive(
+    app: AppHandle,
+    state: State<AppState>,
+    project_id: String,
+    version_id: String,
+    target_dir: String,
+    archive_name: String,
+) -> Result<String, String> {
+    let service = service(&app, &state)?;
+    service
+        .export_version_archive(&project_id, &version_id, target_dir, archive_name)
+        .map_err(|error| error.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -166,7 +181,8 @@ fn main() {
             relink_project_path,
             open_project_folder,
             open_data_dir,
-            export_project_copy
+            export_project_copy,
+            export_version_archive
         ])
         .run(tauri::generate_context!())
         .expect("failed to run app");

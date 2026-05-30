@@ -1,4 +1,4 @@
-import { Bookmark, Check, CheckCircle, Folder, MapPin, Pencil, Undo2, X } from "lucide-react";
+import { Bookmark, Check, CheckCircle, Download, Folder, MapPin, Pencil, Undo2, X } from "lucide-react";
 import { useMemo } from "react";
 import { formatBytes, formatDate, versionDisplayNote, versionLabel } from "../formatters";
 import type { ProjectDetail, Version } from "../types";
@@ -10,6 +10,7 @@ export function ProjectDetailView({
   projectName,
   onOpenSave,
   onSelectVersion,
+  onExportVersion,
   onRollback,
   onOpenFolder,
   onStartEditName,
@@ -24,6 +25,7 @@ export function ProjectDetailView({
   projectName: string;
   onOpenSave: () => void;
   onSelectVersion: (version: Version) => void;
+  onExportVersion: (version: Version, versionNumber: number) => void;
   onRollback: (version: Version) => void;
   onOpenFolder: () => void;
   onStartEditName: () => void;
@@ -106,7 +108,9 @@ export function ProjectDetailView({
                 version={version}
                 versionNumber={detail.versions.length - index}
                 current={version.id === currentVersionId}
+                loading={loading}
                 onShowChanges={() => onSelectVersion(version)}
+                onExport={() => onExportVersion(version, detail.versions.length - index)}
                 onRollback={() => onRollback(version)}
               />
             ))}
@@ -126,13 +130,17 @@ function VersionCard({
   version,
   versionNumber,
   current,
+  loading,
   onShowChanges,
+  onExport,
   onRollback,
 }: {
   version: Version;
   versionNumber: number;
   current: boolean;
+  loading: boolean;
   onShowChanges: () => void;
+  onExport: () => void;
   onRollback: () => void;
 }) {
   const note = useMemo(() => versionDisplayNote(version, versionNumber), [version, versionNumber]);
@@ -157,8 +165,9 @@ function VersionCard({
         </div>
       </div>
       <div className="version-actions">
-        <button className="secondary-button" onClick={onShowChanges}>查看变化</button>
-        <button className="primary-button" disabled={current} onClick={onRollback}>回到这里</button>
+        <button className="secondary-button" disabled={loading} onClick={onShowChanges}>查看变化</button>
+        <button className="secondary-button" disabled={loading} onClick={onExport}><Download size={18} /> 导出压缩包</button>
+        <button className="primary-button" disabled={loading || current} onClick={onRollback}>回到这里</button>
       </div>
     </article>
   );

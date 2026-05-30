@@ -6,7 +6,7 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import { EmptyState, LocalDataNote } from "./components/EmptyStates";
 import { ProjectDetailView, ChangeSummaryDrawer } from "./components/ProjectDetailView";
 import { ProjectFolderDropzone } from "./components/ProjectFolderDropzone";
-import { numberedVersionNote } from "./formatters";
+import { numberedVersionNote, formatDateOnly, versionDisplayNote } from "./formatters";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 import { useFolderDrop } from "./useFolderDrop";
 
@@ -308,6 +308,38 @@ function App() {
     }
   }
 
+  async function exportVersionArchive(version: Version, versionNumber: number) {
+    if (!detail) {
+      return;
+    }
+    setMessage(undefined);
+    let selected: string | null | string[];
+    try {
+      selected = await open({ directory: true, multiple: false, title: "选择压缩包导出位置" });
+    } catch (error) {
+      setMessage(toMessage(error));
+      return;
+    }
+    if (typeof selected !== "string") {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await invoke<string>("export_version_archive", {
+        projectId: detail.project.id,
+        versionId: version.id,
+        targetDir: selected,
+        archiveName: versionArchiveName(detail, version, versionNumber),
+      });
+      showToast("已导出这个好版本的压缩包。");
+    } catch (error) {
+      setMessage(toMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function openDataDir() {
     try {
       await invoke("open_data_dir");
@@ -446,6 +478,7 @@ function App() {
             loading={loading}
             onOpenSave={() => setShowSave(true)}
             onSelectVersion={setSelectedVersion}
+            onExportVersion={exportVersionArchive}
             onRollback={setRollbackVersion}
             onOpenFolder={openProjectFolder}
             editingName={editingName}
@@ -529,6 +562,22 @@ function App() {
 
 function nextVersionNote(detail: ProjectDetail) {
   return numberedVersionNote(detail.versions.length + 1);
+}
+
+function versionArchiveName(detail: ProjectDetail, version: Version, versionNumber: number) {
+  return `${safeFileNamePart(detail.project.displayName)}-${safeFileNamePart(versionDisplayNote(version, versionNumber))}-${formatDateOnly(version.createdAt)}.zip`;
+}
+
+function safeFileNamePart(value: string) {
+  const safeValue = value
+    .trim()
+    .replace(/[\\/:*?"<>|\r\n]+/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/-+/g, "-")
+    .replace(/^[-.\s]+|[-.\s]+$/g, "")
+    .slice(0, 60)
+    .trim();
+  return safeValue || "好版本";
 }
 
 function addProjectToast(addedCount: number, skippedCount: number) {

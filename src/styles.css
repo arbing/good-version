@@ -807,7 +807,7 @@ button:disabled {
 .version-actions .primary-button {
     min-height: 50px;
     border-radius: 8px;
-    padding: 0 20px;
+    padding: 0 16px;
 }
 
 .version-title {
