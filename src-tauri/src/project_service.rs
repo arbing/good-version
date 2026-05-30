@@ -27,7 +27,8 @@ impl ProjectService {
 
     pub fn list_projects(&self) -> Result<Vec<ProjectListItem>, String> {
         let mut items = Vec::new();
-        for project in self.store.load_projects()? {
+        for mut project in self.store.load_projects()? {
+            normalize_project_paths(&mut project);
             let versions = self.store.load_versions(&project.id)?;
             items.push(ProjectListItem {
                 project,
@@ -47,7 +48,7 @@ impl ProjectService {
         let canonical_path = work_tree
             .canonicalize()
             .map_err(|error| error.to_string())?;
-        let canonical_text = canonical_path.to_string_lossy().to_string();
+        let canonical_text = path_text(&canonical_path);
         let mut projects = self.store.load_projects()?;
         if projects
             .iter()
@@ -68,7 +69,7 @@ impl ProjectService {
             id: project_id.clone(),
             display_name: folder_name(&canonical_path),
             path: canonical_text,
-            git_dir_path: git_dir_path.to_string_lossy().to_string(),
+            git_dir_path: path_text(&git_dir_path),
             uses_external_git_dir,
             created_at: now.clone(),
             updated_at: now,
@@ -104,12 +105,13 @@ impl ProjectService {
     }
 
     pub fn get_project_detail(&self, project_id: &str) -> Result<ProjectDetail, String> {
-        let project = self
+        let mut project = self
             .store
             .load_projects()?
             .into_iter()
             .find(|project| project.id == project_id)
             .ok_or_else(|| "没有找到这个项目。".to_string())?;
+        normalize_project_paths(&mut project);
         let mut versions = self.store.load_versions(project_id)?;
         versions.sort_by(|a, b| b.created_at.cmp(&a.created_at));
         let path_exists = Path::new(&project.path).exists();
@@ -167,10 +169,9 @@ impl ProjectService {
             .iter()
             .position(|project| project.id == project_id)
             .ok_or_else(|| "没有找到这个项目。".to_string())?;
-        projects[project_index].path = canonical_path.to_string_lossy().to_string();
+        projects[project_index].path = path_text(&canonical_path);
         if !projects[project_index].uses_external_git_dir {
-            projects[project_index].git_dir_path =
-                canonical_path.join(".git").to_string_lossy().to_string();
+            projects[project_index].git_dir_path = path_text(&canonical_path.join(".git"));
         }
         let updated_project = projects[project_index].clone();
         if updated_project.uses_external_git_dir && dir_is_empty(&canonical_path)? {
@@ -190,12 +191,13 @@ impl ProjectService {
     }
 
     pub fn open_project_folder(&self, project_id: &str) -> Result<(), String> {
-        let project = self
+        let mut project = self
             .store
             .load_projects()?
             .into_iter()
             .find(|project| project.id == project_id)
             .ok_or_else(|| "没有找到这个项目。".to_string())?;
+        normalize_project_paths(&mut project);
         if !Path::new(&project.path).exists() {
             return Err("项目文件夹不见了，请重新选择位置。".to_string());
         }
@@ -207,12 +209,13 @@ impl ProjectService {
     }
 
     pub fn export_project_copy(&self, project_id: &str, target_path: String) -> Result<(), String> {
-        let project = self
+        let mut project = self
             .store
             .load_projects()?
             .into_iter()
             .find(|project| project.id == project_id)
             .ok_or_else(|| "没有找到这个项目。".to_string())?;
+        normalize_project_paths(&mut project);
         let source = Path::new(&project.path);
         if !source.exists() {
             return Err("项目文件夹不见了，暂时无法导出。".to_string());
@@ -241,7 +244,8 @@ impl ProjectService {
             .iter()
             .position(|project| project.id == project_id)
             .ok_or_else(|| "没有找到这个项目。".to_string())?;
-        let project = projects[project_index].clone();
+        let mut project = projects[project_index].clone();
+        normalize_project_paths(&mut project);
         let versions = self.store.load_versions(project_id)?;
         let target = versions
             .iter()
@@ -279,7 +283,8 @@ impl ProjectService {
             .iter()
             .position(|project| project.id == project_id)
             .ok_or_else(|| "没有找到这个项目。".to_string())?;
-        let project = projects[project_index].clone();
+        let mut project = projects[project_index].clone();
+        normalize_project_paths(&mut project);
         let repository = open_project_repository(&project)?;
         let version = self.create_version_record(
             &repository,
@@ -347,6 +352,21 @@ fn open_project_repository(project: &Project) -> Result<git2::Repository, String
             .uses_external_git_dir
             .then_some(Path::new(&project.git_dir_path)),
     )
+}
+
+fn path_text(path: &Path) -> String {
+    strip_windows_verbatim_prefix(&path.to_string_lossy()).to_string()
+}
+
+fn normalize_project_paths(project: &mut Project) {
+    project.path = strip_windows_verbatim_prefix(&project.path).to_string();
+    project.git_dir_path = strip_windows_verbatim_prefix(&project.git_dir_path).to_string();
+}
+
+fn strip_windows_verbatim_prefix(path: &str) -> &str {
+    path.strip_prefix(r"\\?\UNC\")
+        .or_else(|| path.strip_prefix(r"\\?\"))
+        .unwrap_or(path)
 }
 
 fn now_text() -> String {
@@ -524,5 +544,13 @@ mod tests {
             "SECRET=local"
         );
         assert!(!target.path().join(".git").exists());
+    }
+
+    #[test]
+    fn strip_windows_verbatim_prefix_keeps_user_friendly_path() {
+        assert_eq!(
+            strip_windows_verbatim_prefix(r"\\?\C:\Users\arbing\Downloads\agent-main"),
+            r"C:\Users\arbing\Downloads\agent-main"
+        );
     }
 }
