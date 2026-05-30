@@ -167,12 +167,20 @@ impl ProjectService {
             return Err("请选择一个存在的项目文件夹。".to_string());
         }
         let canonical_path = new_path.canonicalize().map_err(|error| error.to_string())?;
+        let canonical_text = path_text(&canonical_path);
         let mut projects = self.store.load_projects()?;
         let project_index = projects
             .iter()
             .position(|project| project.id == project_id)
             .ok_or_else(|| "没有找到这个项目。".to_string())?;
-        projects[project_index].path = path_text(&canonical_path);
+        if projects
+            .iter()
+            .enumerate()
+            .any(|(index, project)| index != project_index && project.path == canonical_text)
+        {
+            return Err("这个项目目录已经在列表中，请选择其他文件夹。".to_string());
+        }
+        projects[project_index].path = canonical_text;
         if !projects[project_index].uses_external_git_dir {
             projects[project_index].git_dir_path = path_text(&canonical_path.join(".git"));
         }
@@ -380,8 +388,12 @@ impl ProjectService {
 }
 
 fn open_project_repository(project: &Project) -> Result<git2::Repository, String> {
+    let path = Path::new(&project.path);
+    if !path.exists() {
+        return Err("项目文件夹不见了，请重新选择位置后再操作。".to_string());
+    }
     GitService::ensure_repository(
-        Path::new(&project.path),
+        path,
         project
             .uses_external_git_dir
             .then_some(Path::new(&project.git_dir_path)),
@@ -655,6 +667,27 @@ mod tests {
             detail.project.current_version_id.as_deref(),
             Some(initial_version_id.as_str())
         );
+    }
+
+    #[test]
+    fn relink_rejects_path_already_used_by_another_project() {
+        let data_dir = tempdir().unwrap();
+        let first_tree = tempdir().unwrap();
+        let second_tree = tempdir().unwrap();
+        let service = ProjectService::new(data_dir.path().to_path_buf()).unwrap();
+        let first = service
+            .add_project(first_tree.path().to_string_lossy().to_string())
+            .unwrap();
+        let second = service
+            .add_project(second_tree.path().to_string_lossy().to_string())
+            .unwrap();
+
+        let error = service
+            .relink_project_path(&first.project.id, second.project.path.clone())
+            .err()
+            .expect("relink should reject existing project path");
+
+        assert_eq!(error, "这个项目目录已经在列表中，请选择其他文件夹。");
     }
 
     #[test]

@@ -752,6 +752,40 @@ describe("App", () => {
     expect(exportCalled).toBe(false);
   });
 
+  it("回退失败时在弹窗上方显示中文提示", async () => {
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return {
+          ...projectDetail(false),
+          project: { ...baseProject, currentVersionId: "version-current" },
+          versions: [
+            { ...version, id: "version-current", title: "当前版本", isInitial: false },
+            version,
+          ],
+        };
+      }
+      if (cmd === "rollback_to_version") {
+        throw new Error("failed to resolve path '/tmp/missing-project': No such file or directory");
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("当前已经是已保存的好版本。");
+    fireEvent.click(screen.getAllByRole("button", { name: "回到这里" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "确认回到这里" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("项目文件夹不见了，请重新选择位置后再操作。");
+    expect(screen.getByText("回到这个好版本？")).toBeInTheDocument();
+    expect(screen.queryByText(/failed to resolve path/)).not.toBeInTheDocument();
+  });
+
   it("回退需要确认，取消后不会调用回退接口", async () => {
     let rollbackCalled = false;
     mockIPC((cmd) => {

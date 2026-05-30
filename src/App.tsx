@@ -244,7 +244,7 @@ function App() {
       setProjects(await invoke<ProjectListItem[]>("list_projects"));
       showToast("已经回到选择的好版本。");
     } catch (error) {
-      setMessage(toMessage(error));
+      showToast(toUserMessage(error));
     } finally {
       setLoading(false);
     }
@@ -601,6 +601,14 @@ function normalizePath(path: string) {
 
 function toMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
+}
+
+function toUserMessage(error: unknown) {
+  const message = toMessage(error);
+  if (message.startsWith("failed to resolve path")) {
+    return "项目文件夹不见了，请重新选择位置后再操作。";
+  }
+  return message;
 }
 
 export default App;

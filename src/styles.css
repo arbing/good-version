@@ -602,7 +602,7 @@ button:disabled {
     top: 22px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 40;
+    z-index: 120;
     border: 1px solid rgba(47, 153, 83, 0.2);
     border-radius: 12px;
     padding: 14px 18px;
@@ -1147,6 +1147,7 @@ button:disabled {
 .modal-mask {
     position: fixed;
     inset: 0;
+    z-index: 80;
     display: grid;
     place-items: center;
     background: rgba(248, 250, 249, 0.62);
