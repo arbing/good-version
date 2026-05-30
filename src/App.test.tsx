@@ -193,11 +193,11 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(await screen.findAllByText("还没有项目")).toHaveLength(2);
-    expect(screen.getByText("添加项目后会在这里显示")).toBeInTheDocument();
-    expect(screen.getByText("选择一个项目文件夹，先保存一个初始好版本。")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /添加项目/ })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: /所有数据都保存在本地设备中/ })).toHaveLength(2);
+    expect(await screen.findAllByText("AI 改项目，先保存一个好版本")).toHaveLength(1);
+    expect(screen.getByText("把项目文件夹拖进来，好用就保存，坏了就回去。支持一次添加多个项目。")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /选择文件夹/ })).toHaveLength(1);
+    expect(screen.getByText("支持同时添加多个文件夹")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /所有数据都保存在本地设备中/ })).toHaveLength(1);
   });
 
   it("连续点击 6 次本地数据区块后打开数据目录", async () => {
@@ -398,9 +398,9 @@ describe("App", () => {
     render(<App />);
 
     await screen.findByRole("heading", { name: "缺货处理工具" });
-    fireEvent.click(screen.getByRole("button", { name: /添加项目/ }));
+    fireEvent.click(screen.getByRole("button", { name: /选择文件夹/ }));
 
-    await screen.findByText("已添加项目，并保存了初始好版本。");
+    await screen.findByText("已添加 2 个项目，并保存了初始好版本。");
     expect(mockedOpen).toHaveBeenCalledWith({ directory: true, multiple: true, title: "选择项目文件夹" });
     expect(addProjectPaths).toEqual(["/tmp/selected-a", "/tmp/selected-b"]);
     expect(screen.getByRole("heading", { name: "第三个项目" })).toBeInTheDocument();
@@ -428,9 +428,38 @@ describe("App", () => {
     render(<App />);
 
     await screen.findByRole("heading", { name: "缺货处理工具" });
-    fireEvent.click(screen.getByRole("button", { name: /添加项目/ }));
+    fireEvent.click(screen.getByRole("button", { name: /选择文件夹/ }));
 
     await screen.findByText("这个项目已经在列表中，已为你切换过去。");
+    expect(addProjectCalled).toBe(false);
+    expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
+  });
+
+  it("添加项目按钮选择多个已存在项目时提示数量并切到最后一个", async () => {
+    let addProjectCalled = false;
+    mockedOpen.mockResolvedValue(["/tmp/project-1", "/tmp/project-2"]);
+    mockIPC((cmd, payload) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        const projectId = projectIdFromPayload(payload) === "project-2" ? "project-2" : "project-1";
+        return projectDetail(false, projectId);
+      }
+      if (cmd === "add_project") {
+        addProjectCalled = true;
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "缺货处理工具" });
+    fireEvent.click(screen.getByRole("button", { name: /选择文件夹/ }));
+
+    await screen.findByText("2 个项目已经在列表中，已为你切换到最后一个。");
     expect(addProjectCalled).toBe(false);
     expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
@@ -466,13 +495,13 @@ describe("App", () => {
     await act(async () => {
       await emit("tauri://drag-enter", { paths: ["/tmp/dragged-project"], position: { x: 10, y: 10 } });
     });
-    expect(screen.getByText("松开鼠标，添加这个项目文件夹")).toBeInTheDocument();
+    expect(screen.getByText("松开即可添加文件夹")).toBeInTheDocument();
 
     await act(async () => {
       await emit("tauri://drag-drop", { paths: ["/tmp/dragged-project"], position: { x: 10, y: 10 } });
     });
 
-    await screen.findByText("已添加项目，并保存了初始好版本。");
+    await screen.findByText("已添加 1 个项目，并保存了初始好版本。");
     expect(addProjectPath).toBe("/tmp/dragged-project");
     expect(screen.getByRole("heading", { name: "第二个项目" })).toBeInTheDocument();
   });
@@ -543,7 +572,7 @@ describe("App", () => {
       await emit("tauri://drag-drop", { paths: ["/tmp/dragged-a", "/tmp/dragged-b"], position: { x: 10, y: 10 } });
     });
 
-    await screen.findByText("已添加项目，并保存了初始好版本。");
+    await screen.findByText("已添加 2 个项目，并保存了初始好版本。");
     expect(addProjectPaths).toEqual(["/tmp/dragged-a", "/tmp/dragged-b"]);
     expect(screen.getByRole("heading", { name: "第三个项目" })).toBeInTheDocument();
   });

@@ -1,10 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Folder, Plus, PlusCircle, ShieldCheck } from "lucide-react";
+import { Folder, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
-import { EmptyState, FolderIllustration, LocalDataNote } from "./components/EmptyStates";
-import { ChangeSummaryDrawer, ProjectDetailView } from "./components/ProjectDetailView";
+import { EmptyState, LocalDataNote } from "./components/EmptyStates";
+import { ProjectDetailView, ChangeSummaryDrawer } from "./components/ProjectDetailView";
+import { ProjectFolderDropzone } from "./components/ProjectFolderDropzone";
 import { numberedVersionNote } from "./formatters";
 import type { AppStatus, ProjectDetail, ProjectListItem, Version } from "./types";
 import { useFolderDrop } from "./useFolderDrop";
@@ -168,7 +169,7 @@ function App() {
       if (lastProjectDetail?.project.id === lastProjectId) {
         setDetail(lastProjectDetail);
       }
-      showToast(addedCount > 0 ? "已添加项目，并保存了初始好版本。" : "这个项目已经在列表中，已为你切换过去。");
+      showToast(addProjectToast(addedCount, paths.length - addedCount));
     } catch (error) {
       setMessage(toMessage(error));
     } finally {
@@ -384,7 +385,7 @@ function App() {
 
   return (
     <main className={`app-shell ${draggingFolder ? "dragging-folder" : ""}`} onContextMenu={handleContextMenu}>
-      {draggingFolder && <div className="toast drag-overlay">松开鼠标，添加这个项目文件夹</div>}
+      {draggingFolder && <div className="toast drag-overlay">松开即可添加文件夹</div>}
       <aside className="sidebar" style={{ width: sidebarWidth }}>
         <div className="brand">
           <span className="brand-icon"><ShieldCheck size={30} /></span>
@@ -392,9 +393,14 @@ function App() {
         </div>
         <p className="brand-subtitle">保存能用的状态，改坏了也能回来</p>
 
-        <button className="add-button" disabled={loading} onClick={addProject}>
-          <PlusCircle size={22} /> 添加项目
-        </button>
+        {projects.length > 0 && (
+          <ProjectFolderDropzone
+            variant="compact"
+            dragging={draggingFolder}
+            loading={loading}
+            onSelect={addProject}
+          />
+        )}
 
         <section className="project-section">
           <h2>我的项目</h2>
@@ -455,14 +461,12 @@ function App() {
           />
         ) : (
           <section className="hero-empty">
-            <FolderIllustration />
-            <h2>还没有项目</h2>
-            <p>选择一个项目文件夹，先保存一个初始好版本。</p>
-            <button className="primary-button hero-add-button" disabled={loading} onClick={addProject}>
-              <span><Plus size={20} /></span>
-              添加项目
-            </button>
-            {status && <LocalDataNote variant="hero" onClick={handleDataDirClick} />}
+            <ProjectFolderDropzone
+              variant="empty"
+              dragging={draggingFolder}
+              loading={loading}
+              onSelect={addProject}
+            />
           </section>
         )}
       </section>
@@ -525,6 +529,21 @@ function App() {
 
 function nextVersionNote(detail: ProjectDetail) {
   return numberedVersionNote(detail.versions.length + 1);
+}
+
+function addProjectToast(addedCount: number, skippedCount: number) {
+  if (addedCount === 0) {
+    return skippedCount > 1
+      ? `${skippedCount} 个项目已经在列表中，已为你切换到最后一个。`
+      : "这个项目已经在列表中，已为你切换过去。";
+  }
+  if (skippedCount > 0) {
+    return `已添加 ${addedCount} 个项目，跳过 ${skippedCount} 个已添加的项目。`;
+  }
+  if (addedCount === 1) {
+    return "已添加 1 个项目，并保存了初始好版本。";
+  }
+  return `已添加 ${addedCount} 个项目，并保存了初始好版本。`;
 }
 
 function normalizePath(path: string) {

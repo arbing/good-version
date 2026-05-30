@@ -20,9 +20,10 @@ test("空项目状态显示添加入口", async ({ page }) => {
 
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "还没有项目" })).toBeVisible();
-  await expect(page.getByText("添加项目后会在这里显示")).toBeVisible();
-  await expect(page.getByText("选择一个项目文件夹，先保存一个初始好版本。")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "AI 改项目，先保存一个好版本" })).toBeVisible();
+  await expect(page.getByText("把项目文件夹拖进来，好用就保存，坏了就回去。支持一次添加多个项目。")).toBeVisible();
+  await expect(page.getByRole("button", { name: /选择文件夹/ })).toBeVisible();
+  await expect(page.getByText("支持同时添加多个文件夹")).toBeVisible();
   await expect(page.getByRole("button", { name: /所有数据都保存在本地设备中/ }).last()).toBeVisible();
 
   const projectList = await page.evaluate(() => {
@@ -127,7 +128,7 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
     const projectList = document.querySelector(".project-list") as HTMLElement;
     const content = document.querySelector(".content") as HTMLElement;
     const brand = document.querySelector(".brand") as HTMLElement;
-    const addButton = document.querySelector(".add-button") as HTMLElement;
+    const dropzone = document.querySelector(".folder-dropzone.compact") as HTMLElement;
     const localNote = document.querySelector(".sidebar > .local-note") as HTMLElement;
     const sidebar = document.querySelector(".sidebar") as HTMLElement;
 
@@ -142,7 +143,7 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
       resizerLineCount: window.getComputedStyle(resizer, "::before").width,
       sidebarBorderRight: window.getComputedStyle(sidebar).borderRightWidth,
       brandVisible: brand.getBoundingClientRect().top >= 0,
-      addButtonVisible: addButton.getBoundingClientRect().top >= 0,
+      dropzoneVisible: dropzone.getBoundingClientRect().top >= 0,
       localNoteVisible: localNote.getBoundingClientRect().bottom <= window.innerHeight,
       sidebarWidth: sidebar.getBoundingClientRect().width,
       contentLeft: content.getBoundingClientRect().left,
@@ -174,7 +175,7 @@ test("长列表时左右滚动区域相互独立", async ({ page }) => {
   expect(layout.resizerLineCount).toBe("1px");
   expect(layout.sidebarBorderRight).toBe("0px");
   expect(layout.brandVisible).toBe(true);
-  expect(layout.addButtonVisible).toBe(true);
+  expect(layout.dropzoneVisible).toBe(true);
   expect(layout.localNoteVisible).toBe(true);
   expect(layout.sidebarWidth).toBe(420);
   expect(layout.projectPathWidth).toBeGreaterThan(layout.projectCardWidth - 100);
@@ -359,7 +360,7 @@ test("保存好版本后 toast 在窗口顶部水平居中", async ({ page }) =>
   await page.goto("/");
   await expect(page.getByRole("button", { name: /保存当前好版本/ })).toBeEnabled();
   await page.getByRole("button", { name: /保存当前好版本/ }).click();
-  await page.getByRole("button", { name: "保存" }).click();
+  await page.getByRole("button", { name: "保存", exact: true }).click();
 
   const toast = page.locator(".toast");
   await expect(toast).toBeVisible();
