@@ -139,6 +139,14 @@ function multiProjectList(paths: string[]): ProjectListItem[] {
   ];
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+  return { promise, resolve };
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -148,6 +156,23 @@ describe("App", () => {
     vi.useRealTimers();
     mockedOpen.mockReset();
     clearMocks();
+  });
+
+  it("启动失败时不永久停留在启动页", async () => {
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        throw new Error("状态读取失败");
+      }
+      if (cmd === "list_projects") {
+        return [];
+      }
+    });
+
+    render(<App />);
+
+    await screen.findByText("状态读取失败");
+    expect(screen.queryByRole("main", { busy: true })).not.toBeInTheDocument();
+    expect(screen.getByText("AI 改项目，先保存一个好版本")).toBeInTheDocument();
   });
 
   it("选择文本后右键菜单只显示复制", async () => {
@@ -179,6 +204,60 @@ describe("App", () => {
 
     await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalledWith("选择的文本"));
     expect(await screen.findByRole("status")).toHaveTextContent("已复制");
+  });
+
+  it("已有项目启动加载中不显示空项目入口", async () => {
+    const projects = deferred<ProjectListItem[]>();
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projects.promise;
+      }
+      if (cmd === "get_project_detail") {
+        return projectDetail(false);
+      }
+    });
+
+    render(<App />);
+
+    expect(screen.queryByText("还没有项目")).not.toBeInTheDocument();
+    expect(screen.queryByText("AI 改项目，先保存一个好版本")).not.toBeInTheDocument();
+    expect(screen.getByRole("main", { busy: true })).toHaveClass("startup-screen");
+
+    await act(async () => {
+      projects.resolve(projectList());
+    });
+
+    await screen.findByText("当前已经是已保存的好版本。");
+  });
+
+  it("已有项目详情加载中不显示添加项目空态", async () => {
+    const detail = deferred<ProjectDetail>();
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return projectList();
+      }
+      if (cmd === "get_project_detail") {
+        return detail.promise;
+      }
+    });
+
+    render(<App />);
+
+    expect(screen.getByRole("main", { busy: true })).toHaveClass("startup-screen");
+    expect(screen.queryByText("AI 改项目，先保存一个好版本")).not.toBeInTheDocument();
+    expect(screen.queryByText("正在加载项目…")).not.toBeInTheDocument();
+
+    await act(async () => {
+      detail.resolve(projectDetail(false));
+    });
+
+    await screen.findByText("当前已经是已保存的好版本。");
   });
 
   it("空项目状态对齐原型文案并保留添加入口", async () => {

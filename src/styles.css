@@ -872,11 +872,35 @@ button:disabled {
     background: #fde9e9;
 }
 
+.startup-screen {
+    display: grid;
+    width: 100vw;
+    height: 100vh;
+    place-items: center;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 44%, rgba(48, 153, 83, 0.12), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, #f8fbf8 100%);
+}
+
+.startup-logo {
+    width: 128px;
+    height: 128px;
+    border-radius: 32px;
+    box-shadow: 0 22px 56px rgba(47, 153, 83, 0.22);
+}
+
 .hero-empty,
 .empty-state {
     display: grid;
+    min-width: 256px;
+    min-height: 62px;
+    margin-top: 24px;
+    border-radius: 8px;
+    padding: 0 34px;
     place-items: center;
     color: #5d6670;
+    font-size: 25px;
     text-align: center;
 }
 

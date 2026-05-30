@@ -13,9 +13,10 @@ import { useFolderDrop } from "./useFolderDrop";
 const DEFAULT_SIDEBAR_WIDTH = 360;
 const MIN_SIDEBAR_WIDTH = 300;
 const MIN_CONTENT_WIDTH = 560;
+const LOGO_URL = "/logo.png";
 
 function App() {
-  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const [projects, setProjects] = useState<ProjectListItem[]>();
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
   const [detail, setDetail] = useState<ProjectDetail>();
   const [status, setStatus] = useState<AppStatus>();
@@ -120,6 +121,7 @@ function App() {
       selectProject(loadedProjects[0]?.id);
     } catch (error) {
       setMessage(toMessage(error));
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,7 @@ function App() {
     setLoading(true);
     setMessage(undefined);
     try {
-      const projectIdByPath = new Map(projects.map((project) => [normalizePath(project.path), project.id]));
+      const projectIdByPath = new Map((projects ?? []).map((project) => [normalizePath(project.path), project.id]));
       let lastProjectId: string | undefined;
       let lastProjectDetail: ProjectDetail | undefined;
       let addedCount = 0;
@@ -420,6 +422,16 @@ function App() {
     setContextMenu(selectedText ? { x: event.clientX, y: event.clientY, text: selectedText } : undefined);
   }
 
+  const isBooting = projects === undefined || Boolean(selectedProjectId && !detail);
+
+  if (isBooting) {
+    return (
+      <main className="startup-screen" aria-busy="true">
+        <img className="startup-logo" src={LOGO_URL} alt="" />
+      </main>
+    );
+  }
+
   return (
     <main className={`app-shell ${draggingFolder ? "dragging-folder" : ""}`} onContextMenu={handleContextMenu}>
       {draggingFolder && <div className="toast drag-overlay">松开即可添加文件夹</div>}
@@ -430,7 +442,7 @@ function App() {
         </div>
         <p className="brand-subtitle">保存能用的状态，改坏了也能回来</p>
 
-        {projects.length > 0 && (
+        {projects && projects.length > 0 && (
           <ProjectFolderDropzone
             variant="compact"
             dragging={draggingFolder}

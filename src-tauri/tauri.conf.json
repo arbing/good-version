@@ -12,11 +12,14 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "好版本",
         "width": 1440,
         "height": 900,
         "minWidth": 980,
-        "minHeight": 680
+        "minHeight": 680,
+        "center": true,
+        "backgroundColor": "#f8fbf8"
       }
     ]
   },

@@ -409,7 +409,8 @@ fn open_project_repository_for_export(project: &Project) -> Result<git2::Reposit
         if !git_dir.exists() {
             return Err("这个好版本暂时无法导出。".to_string());
         }
-        return git2::Repository::open_bare(git_dir).map_err(|_| "这个好版本暂时无法导出。".to_string());
+        return git2::Repository::open_bare(git_dir)
+            .map_err(|_| "这个好版本暂时无法导出。".to_string());
     }
     open_project_repository(project)
 }
@@ -552,7 +553,8 @@ fn write_version_archive(
             .find_blob(entry.id())
             .map_err(|err| err.message().to_string())
             .and_then(|blob| {
-                zip.start_file(path, options).map_err(|err| err.to_string())?;
+                zip.start_file(path, options)
+                    .map_err(|err| err.to_string())?;
                 zip.write_all(blob.content()).map_err(|err| err.to_string())
             });
         if let Err(message) = result {
@@ -751,7 +753,10 @@ mod tests {
 
         let file = fs::File::open(&archive_path).unwrap();
         let mut archive = zip::ZipArchive::new(file).unwrap();
-        assert_eq!(archive.by_name("项目-初始好版本/README.md").unwrap().size(), 7);
+        assert_eq!(
+            archive.by_name("项目-初始好版本/README.md").unwrap().size(),
+            7
+        );
         assert!(archive.by_name("项目-初始好版本/.env").is_ok());
         assert!(archive.by_name("项目-初始好版本/src/main.rs").is_ok());
         assert!(archive.by_name("项目-初始好版本/.git/HEAD").is_err());
@@ -762,7 +767,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(readme, "initial");
-        assert_eq!(fs::read_to_string(work_tree.path().join("README.md")).unwrap(), "updated");
+        assert_eq!(
+            fs::read_to_string(work_tree.path().join("README.md")).unwrap(),
+            "updated"
+        );
     }
 
     #[test]
