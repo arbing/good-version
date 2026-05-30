@@ -27,6 +27,18 @@ button:disabled {
   opacity: 0.62;
 }
 
+.selection-context-menu {
+  position: fixed;
+  z-index: 80;
+  border: 1px solid rgba(32, 36, 42, 0.1);
+  border-radius: 10px;
+  padding: 8px 18px;
+  color: #20242a;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 36px rgba(33, 42, 55, 0.16);
+  font-size: 14px;
+}
+
 .app-shell {
   position: relative;
   display: flex;

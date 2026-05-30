@@ -150,6 +150,37 @@ describe("App", () => {
     clearMocks();
   });
 
+  it("选择文本后右键菜单只显示复制", async () => {
+    mockIPC((cmd) => {
+      if (cmd === "get_app_status") {
+        return appStatus();
+      }
+      if (cmd === "list_projects") {
+        return [];
+      }
+    });
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+    vi.spyOn(window, "getSelection").mockReturnValue({ toString: () => "选择的文本" } as Selection);
+
+    render(<App />);
+    const main = await screen.findByRole("main");
+    fireEvent.contextMenu(main, { clientX: 120, clientY: 140 });
+
+    const copyButton = screen.getByRole("button", { name: "复制" });
+    expect(copyButton).toBeInTheDocument();
+    expect(screen.getAllByRole("button")).toContain(copyButton);
+
+    fireEvent.pointerDown(copyButton);
+    fireEvent.click(copyButton);
+
+    await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalledWith("选择的文本"));
+    expect(await screen.findByRole("status")).toHaveTextContent("已复制");
+  });
+
   it("空项目状态对齐原型文案并保留添加入口", async () => {
     mockIPC((cmd) => {
       if (cmd === "get_app_status") {

@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Folder, Plus, PlusCircle, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { EmptyState, FolderIllustration, LocalDataNote } from "./components/EmptyStates";
 import { ChangeSummaryDrawer, ProjectDetailView } from "./components/ProjectDetailView";
 import { numberedVersionNote } from "./formatters";
@@ -25,6 +26,7 @@ function App() {
   const [rollbackVersion, setRollbackVersion] = useState<Version>();
   const [message, setMessage] = useState<string>();
   const [toast, setToast] = useState<{ id: number; text: string }>();
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; text: string }>();
   const [loading, setLoading] = useState(false);
   const [draggingFolder, setDraggingFolder] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
@@ -75,6 +77,24 @@ function App() {
     const timer = window.setTimeout(() => setToast(undefined), 2600);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (!contextMenu) {
+      return;
+    }
+
+    const closeContextMenu = () => setContextMenu(undefined);
+    window.addEventListener("pointerdown", closeContextMenu);
+    window.addEventListener("keydown", closeContextMenu);
+    window.addEventListener("resize", closeContextMenu);
+    window.addEventListener("scroll", closeContextMenu, true);
+    return () => {
+      window.removeEventListener("pointerdown", closeContextMenu);
+      window.removeEventListener("keydown", closeContextMenu);
+      window.removeEventListener("resize", closeContextMenu);
+      window.removeEventListener("scroll", closeContextMenu, true);
+    };
+  }, [contextMenu]);
 
   function showToast(text: string) {
     setToast({ id: Date.now(), text });
@@ -340,8 +360,30 @@ function App() {
     window.addEventListener("blur", stopResize, { once: true });
   }
 
+  async function copySelectedText(event: ReactMouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+
+    if (!contextMenu?.text) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(contextMenu.text);
+      setContextMenu(undefined);
+      showToast("已复制");
+    } catch {
+      setMessage("复制失败，请使用快捷键复制。请检查系统剪贴板权限。");
+    }
+  }
+
+  function handleContextMenu(event: ReactMouseEvent<HTMLElement>) {
+    const selectedText = window.getSelection()?.toString().trim();
+    event.preventDefault();
+    setContextMenu(selectedText ? { x: event.clientX, y: event.clientY, text: selectedText } : undefined);
+  }
+
   return (
-    <main className={`app-shell ${draggingFolder ? "dragging-folder" : ""}`}>
+    <main className={`app-shell ${draggingFolder ? "dragging-folder" : ""}`} onContextMenu={handleContextMenu}>
       {draggingFolder && <div className="toast drag-overlay">松开鼠标，添加这个项目文件夹</div>}
       <aside className="sidebar" style={{ width: sidebarWidth }}>
         <div className="brand">
@@ -426,6 +468,17 @@ function App() {
       </section>
 
       {toast && <div className="toast" role="status">{toast.text}</div>}
+
+      {contextMenu && (
+        <button
+          className="selection-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={copySelectedText}
+        >
+          复制
+        </button>
+      )}
 
       {showSave && (
         <div className="modal-mask">
