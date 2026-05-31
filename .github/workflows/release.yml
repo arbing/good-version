@@ -3,11 +3,11 @@ name: 发布新版本
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
-        description: '发布的版本 tag（如 v0.2.0）'
+        description: "发布的版本 tag（如 v0.2.0）"
         required: true
 
 permissions:
@@ -28,12 +28,12 @@ jobs:
             bundle_path: src-tauri/target/aarch64-apple-darwin/release/bundle/dmg
             ext: dmg
 
-          - name: macOS (Intel)
-            runner: macos-13
-            target: x86_64-apple-darwin
-            artifact: macos-x64
-            bundle_path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg
-            ext: dmg
+          # - name: macOS (Intel)
+          #   runner: macos-13
+          #   target: x86_64-apple-darwin
+          #   artifact: macos-x64
+          #   bundle_path: src-tauri/target/x86_64-apple-darwin/release/bundle/dmg
+          #   ext: dmg
 
           - name: Windows (x64)
             runner: windows-latest
@@ -76,7 +76,7 @@ jobs:
       - name: 构建
         run: pnpm exec tauri build --target ${{ matrix.target }}
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ''
+          TAURI_SIGNING_PRIVATE_KEY: ""
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
