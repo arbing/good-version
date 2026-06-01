@@ -105,9 +105,21 @@ jobs:
             echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: 重命名发布产物
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.version.outputs.tag }}"
+          version="${version#v}"
+
+          find dist -type f -name "*.dmg" -exec mv {} "dist/good-version_${version}_aarch64.dmg" \;
+          find dist -type f -name "*x64-setup.exe" -exec mv {} "dist/good-version_${version}_x64-setup.exe" \;
+          find dist -type f -name "*arm64-setup.exe" -exec mv {} "dist/good-version_${version}_arm64-setup.exe" \;
+
       - name: 创建 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
-          files: dist/**/*
+          files: dist/good-version_*
